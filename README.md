@@ -31,7 +31,7 @@ Steuerkonstellationen geprüft.
 ```bash
 npm install
 npm run dev        # Entwicklungsserver (Rechner unter /index.html, Theorie unter /theorie.html)
-npm test           # 116 Unit-Tests des Rechenkerns
+npm test           # 119 Unit-Tests des Rechenkerns
 npm run typecheck  # TypeScript im strict-Modus
 npm run build      # Produktions-Build nach dist/
 ```
@@ -88,11 +88,11 @@ Auslandsimmobilien-, Rentenfonds) und alle Frequenzen (monatlich, quartalsweise,
 
 Zwei Fonds (`meridian-sri-30-am`, `meridian-sri-75-am`) tragen die Kennzahlen aus den
 Ergebnis-PDFs des Original-Rechners – einmal mit 15 %, einmal mit 30 % Teilfreistellung. Damit
-reproduziert der Prototyp neun abgelesene Ausgaben **auf den Cent** – siehe unten.
+reproduziert der Prototyp elf abgelesene Ausgaben **auf den Cent** – siehe unten.
 
 ## Verifikation gegen den Original-Rechner
 
-Zwei Fonds derselben Familie, Stichtag 10.08.2026. Alle neun abgelesenen Werte werden auf den
+Zwei Fonds derselben Familie, Stichtag 10.08.2026. Alle elf abgelesenen Werte werden auf den
 Cent reproduziert:
 
 | Fall | Original | Modell |
@@ -106,12 +106,13 @@ Cent reproduziert:
 | SRI 30 · 20.000 € Anlage, vor Steuern | 46,39 €/Monat | 46,39 €/Monat |
 | SRI 75 · 50 €/Monat, FSA 0 €, ohne Steuern | 11.457,03 € | 11.457,03 € |
 | SRI 75 · 50 €/Monat, FSA 0 €, mit Steuern | 14.051,24 € | 14.051,24 € |
+| SRI 30 · 50 €/Monat, **Betriebsvermögen** | 21.555,98 € / 27.785,03 € | identisch zum Privatvermögen |
 
 Ein zehnter Wert aus einer früheren Sitzung (21.508,83 €, gleicher Fonds, gleiche Einstellungen)
 passt ebenfalls exakt – bei einem Anteilpreis von 104,93 € statt 105,16 €, also nach einem
 Kurs-Update von 0,219 %.
 
-Damit sind vier Modellfragen entschieden:
+Damit sind fünf Modellfragen entschieden:
 
 1. **Ausgabeaufschlag** folgt `A = K × (1 + a)` — belegt bei 4 % und bei 5 %.
 2. **Umkehrung der Steuerformel** stimmt exakt, bei zwei Teilfreistellungssätzen (15 % / 30 %).
@@ -121,6 +122,11 @@ Damit sind vier Modellfragen entschieden:
    2,8948 % statt 3 % (SRI 30), 5,4988 % statt 6 % (SRI 75).
 4. **Freistellungsauftrag**: Er wirkt nur mit dem teilfreigestellten Satz `(1 − tf) × s`, nicht
    mit `s`. Im 500-€-Fall kostet das 916 € zusätzliches Kapital (4,2 %).
+
+5. **Betriebsvermögen**: Der Schalter ändert die Rechnung nicht — er deaktiviert nur das
+   Freistellungsauftrag-Feld. Weiterhin 15 % Teilfreistellung und 26,375 %, nicht die
+   30 % / persönlicher Satz nach § 20 InvStG. Passend dazu schreibt das PDF unter „Annahmen"
+   ausdrücklich „Gilt für Anlagen im Privatvermögen".
 
 Punkt 4 ist der bemerkenswerte. Entscheidend ist der 550-€-Fall: Dort deckt der
 Freistellungsauftrag die teilfreigestellten 510 € vollständig ab, nach § 20 Abs. 9 EStG fiele
@@ -135,7 +141,7 @@ hinweist; die Abweichung geht in die konservative Richtung (mehr Kapital, nicht 
 
 ## Tests
 
-116 Tests in sieben Dateien:
+119 Tests in sieben Dateien:
 
 - `tax.test.ts` – Steuersätze auf zwölf Nachkommastellen (26,3750 % / 27,8186 % / 27,9951 %),
   Teilfreistellungstabelle, Reihenfolge der Abzüge, Umkehrformel inklusive Knick und Monotonie
@@ -143,7 +149,7 @@ hinweist; die Abweichung geht in die konservative Richtung (mehr Kapital, nicht 
   Aufschlagkonventionen, Frequenzen, Randfälle, Fehlerbehandlung
 - `roundtrip.test.ts` – Kreuztest über 9 Fonds × 6 Steuerkonstellationen × 2 Konventionen ×
   8 Beträge: beide Richtungen müssen exakt invers sein
-- `allianz-referenz.test.ts` – pinnt die neun oben genannten Referenzwerte auf den Cent
+- `allianz-referenz.test.ts` – pinnt die elf oben genannten Referenzwerte auf den Cent
 - `prognosen.test.ts` – Vorhersagen zur Abzugsreihenfolge; drei davon inzwischen bestätigt
 - `examples.test.ts` – Pinning der vier Beispielszenarien auf den Cent
 - `format.test.ts` – deutsche Zahleneingabe und -ausgabe, inklusive Rundlauf

@@ -772,7 +772,7 @@ A   = K × (1 + a)                 <span class="kommentar">Anlagebetrag inkl. Au
         </table>
       </div>
 
-      <p>Neun abgelesene Ausgaben über zwei Fonds, gegen das Modell gerechnet:</p>
+      <p>Elf abgelesene Ausgaben über zwei Fonds, gegen das Modell gerechnet:</p>
 
       <div class="tabelle-huelle">
         <table>
@@ -793,6 +793,7 @@ A   = K × (1 + a)                 <span class="kommentar">Anlagebetrag inkl. Au
             <tr><td style="white-space: normal">SRI 30 · 20.000 € Anlage, vor Steuern</td><td class="zahl">46,39 €</td><td class="zahl">46,39 €</td></tr>
             <tr><td style="white-space: normal">SRI 75 · 50 €/Monat, FSA 0 €, ohne Steuern</td><td class="zahl">11.457,03 €</td><td class="zahl">11.457,03 €</td></tr>
             <tr><td style="white-space: normal">SRI 75 · 50 €/Monat, FSA 0 €, mit Steuern</td><td class="zahl">14.051,24 €</td><td class="zahl">14.051,24 €</td></tr>
+            <tr><td style="white-space: normal">SRI 30 · 50 €/Monat, <strong>Betriebsvermögen</strong></td><td class="zahl">21.555,98 € / 27.785,03 €</td><td class="zahl">identisch zum Privatvermögen</td></tr>
           </tbody>
         </table>
       </div>
@@ -892,7 +893,7 @@ Kursbewegung: + 0,219 %</div>
             </tr>
             <tr>
               <td style="white-space: normal">Verhalten im Betriebsvermögen</td>
-              <td style="white-space: normal">ungeprüft; keine Messung vorhanden</td>
+              <td style="white-space: normal">gemessen: der Schalter ändert die Rechnung nicht</td>
             </tr>
           </tbody>
         </table>
@@ -919,6 +920,45 @@ SRI 75:  0,51785 × 12 = 6,21420 €  =  6,0 % von 103,570 €   (Kurs jetzt 113
           hier vom Anbieter selbst benannt.
         </p>
       </div>
+
+      <h3>Der Betriebsvermögens-Schalter rechnet gar nicht anders</h3>
+
+      <p>
+        Derselbe Fonds, dieselben 50 €/Monat, Umschaltung auf Betriebsvermögen: Der Rechner zeigt
+        <strong>21.555,98 € / 27.785,03 €</strong> – exakt dieselben Zahlen wie im
+        Privatvermögen ohne Freistellungsauftrag. Sichtbar ändert sich nur, dass das Feld
+        „Freistellungsauftrag“ ausgegraut wird.
+      </p>
+
+      <p>
+        Dass das kein Zufallstreffer ist, zeigt eine Gegenprobe: Mit den gesetzlichen 30 %
+        Teilfreistellung für einen Mischfonds im Betriebsvermögen müsste der Steuersatz
+        <code>173,38 ÷ 541,37 = 32,03 %</code> betragen – ein Satz, den es nicht gibt. Mit 15 %
+        Teilfreistellung ergibt sich dagegen exakt <code>26,3750 %</code>, also unverändert die
+        Abgeltungsteuer.
+      </p>
+
+      <div class="tabelle-huelle">
+        <table>
+          <thead>
+            <tr><th>Mischfonds, 50 €/Monat netto</th><th class="zahl">Teilfreistellung</th><th class="zahl">Steuersatz</th><th class="zahl">Anlagebetrag</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Original-Rechner, Betriebsvermögen</td><td class="zahl">15 %</td><td class="zahl">26,375 %</td><td class="zahl">27.785,03 €</td></tr>
+            <tr><td>§ 20 InvStG, natürliche Person, 42 %</td><td class="zahl">30 %</td><td class="zahl">44,310 %</td><td class="zahl">31.248,24 €</td></tr>
+            <tr><td>§ 20 InvStG, natürliche Person, 30 %</td><td class="zahl">30 %</td><td class="zahl">31,650 %</td><td class="zahl">27.690,89 €</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>
+        Das ist konsistent mit dem Ergebnis-PDF, das unter „Annahmen“ ausdrücklich schreibt:
+        <em>„Gilt für Anlagen im Privatvermögen von Anlegern, die in Deutschland steuerpflichtig
+        sind.“</em> Der Schalter existiert also in der Oberfläche, wirkt sich aber nicht auf die
+        Steuerrechnung aus. Der Prototyp modelliert das Betriebsvermögen bewusst anders – mit den
+        Sätzen des § 20 InvStG und einem einstellbaren persönlichen Steuersatz – und weist in der
+        Oberfläche auf die Abweichung hin.
+      </p>
 
       <h3>Die Prognosen und ihre Überprüfung</h3>
 
@@ -1125,7 +1165,7 @@ A = 164.585,57 × 1,05                           = 172.814,85 €</div>
 
       <p>
         Der Prototyp trennt Rechenkern (<code>src/core/</code>) und Oberfläche
-        (<code>src/main.ts</code>) strikt. Getestet wird ausschließlich der Kern – 116 Tests in
+        (<code>src/main.ts</code>) strikt. Getestet wird ausschließlich der Kern – 119 Tests in
         sieben Dateien:
       </p>
 
@@ -1155,7 +1195,7 @@ A = 164.585,57 × 1,05                           = 172.814,85 €</div>
         </li>
         <li>
           <strong>Verifikation gegen echte Ausgaben.</strong>
-          <code>allianz-referenz.test.ts</code> pinnt alle neun abgelesenen Werte des
+          <code>allianz-referenz.test.ts</code> pinnt alle elf abgelesenen Werte des
           Original-Rechners auf den Cent – inklusive des Nachweises, dass Fall C nur in der
           vereinfachten Abzugsreihenfolge trifft, und dass die alternative
           Ausgabeaufschlag-Konvention die Referenz um mehr als 30 € verfehlt.

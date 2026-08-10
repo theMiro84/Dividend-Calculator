@@ -11,7 +11,7 @@
  *
  * In allen Faellen: 25 % Abgeltungsteuer + 5,5 % Soli, keine Kirchensteuer.
  *
- * Neun abgelesene Referenzwerte, alle auf den Cent getroffen:
+ * Elf abgelesene Referenzwerte, alle auf den Cent getroffen:
  *
  *   A) SRI 30, 50 EUR/Monat, FSA   0 EUR, ohne Steuern -> 21.555,98 EUR
  *   B) SRI 30, 50 EUR/Monat, FSA   0 EUR, mit Steuern  -> 27.785,03 EUR
@@ -21,6 +21,9 @@
  *      SRI 30, 50 EUR/Monat, FSA 550 EUR, mit Steuern  -> 22.075,06 EUR
  *   D) SRI 30, 20.000 EUR Anlagebetrag, FSA 0, vor Steuern -> 46,39 EUR/Monat
  *   E) SRI 75, 50 EUR/Monat, FSA   0 EUR -> 11.457,03 / 14.051,24 EUR
+ *   F) SRI 30, 50 EUR/Monat, Betriebsvermoegen -> 21.555,98 / 27.785,03 EUR
+ *      (identisch mit dem Privatvermoegen; der Schalter deaktiviert nur den
+ *      Freistellungsauftrag und aendert die Steuerrechnung nicht)
  *
  * Die drei C-Faelle entscheiden die Frage der Abzugsreihenfolge. Am schaerfsten
  * der 550-EUR-Fall: Dort deckt der Freistellungsauftrag die teilfreigestellten
@@ -34,7 +37,7 @@ import { describe, expect, it } from 'vitest';
 import { ausschuettungsrendite, berechneAnlagebetrag, berechneEinkommen } from '../src/core/calculator.js';
 import type { Eingaben } from '../src/core/calculator.js';
 import { findeFonds } from '../src/data/funds.js';
-import { privat } from './helpers.js';
+import { betrieb, privat } from './helpers.js';
 
 const fonds = findeFonds('meridian-sri-30-am');
 
@@ -193,6 +196,53 @@ describe('E) Zweiter Fonds: SRI 75 mit 30 % Teilfreistellung', () => {
     const jahresausschuettung = sri75.ausschuettungJeAnteil * sri75.frequenz;
     expect(jahresausschuettung / 0.06).toBeCloseTo(103.57, 2);
     expect(ausschuettungsrendite(sri75)).toBeCloseTo(0.054988, 6);
+  });
+});
+
+describe('F) Betriebsvermögen – der Schalter ändert die Rechnung nicht', () => {
+  /*
+   * Screenshot: SRI 30, 50 EUR/Monat, Betriebsvermoegen, Ausgabeaufschlag 4 %,
+   * Freistellungsauftrag-Feld ausgegraut -> 21.555,98 / 27.785,03 EUR.
+   * Das sind exakt dieselben Zahlen wie im Privatvermoegen ohne
+   * Freistellungsauftrag. Der Original-Rechner setzt im Betriebsvermoegen also
+   * weiterhin 15 % Teilfreistellung und 26,375 % an; er deaktiviert lediglich
+   * den Sparer-Pauschbetrag.
+   */
+  const privatvermoegen = berechneAnlagebetrag(50, eingaben(0, 'nach_teilfreistellung'));
+
+  it('zeigt im Original dieselben Werte wie das Privatvermögen', () => {
+    expect(privatvermoegen.ohneSteuerbetrachtung.anlagebetragBrutto).toBeCloseTo(21555.98, 2);
+    expect(privatvermoegen.mitSteuerbetrachtung.anlagebetragBrutto).toBeCloseTo(27785.03, 2);
+  });
+
+  it('ist kein Zufallstreffer: kein Standardsatz erklärt die Zahl mit 30 % Teilfreistellung', () => {
+    // 27.785,03 EUR entsprechen 773,38 EUR brutto und 173,38 EUR Steuer.
+    // Mit 30 % Teilfreistellung waere die Bemessungsgrundlage 541,37 EUR,
+    // was einen Steuersatz von 32,03 % erfordern wuerde - den gibt es nicht.
+    const e = privatvermoegen.mitSteuerbetrachtung;
+    const steuer = e.ausschuettungBruttoJahr - 600;
+    expect(steuer / (e.ausschuettungBruttoJahr * 0.7)).toBeCloseTo(0.3203, 4);
+    expect(steuer / (e.ausschuettungBruttoJahr * 0.85)).toBeCloseTo(0.26375, 6);
+  });
+
+  it('weicht bewusst vom Prototyp ab, der das Betriebsvermögen gesetzeskonform modelliert', () => {
+    // § 20 InvStG: Mischfonds im Betriebsvermoegen einer natuerlichen Person
+    // -> 30 % statt 15 % Teilfreistellung, dazu der persoenliche Steuersatz.
+    const betriebsvermoegen = berechneAnlagebetrag(50, {
+      fonds,
+      ausgabeaufschlag: 0.04,
+      aufschlagModus: 'auf_anteilwert',
+      steuer: betrieb({ persoenlicherSteuersatz: 0.42 }),
+    }).mitSteuerbetrachtung;
+
+    expect(betriebsvermoegen.teilfreistellungssatz).toBe(0.3);
+    expect(betriebsvermoegen.steuersatz).toBeCloseTo(0.4431, 8);
+    expect(betriebsvermoegen.anlagebetragBrutto).toBeCloseTo(31248.24, 2);
+
+    // Der Prototyp verlangt hier also deutlich mehr Kapital als der Original-Rechner.
+    expect(betriebsvermoegen.anlagebetragBrutto).toBeGreaterThan(
+      privatvermoegen.mitSteuerbetrachtung.anlagebetragBrutto,
+    );
   });
 });
 

@@ -69,6 +69,7 @@ const rechenwegKnoten = el<HTMLElement>('rechenweg');
 const fondsInfo = el<HTMLElement>('fonds-info');
 const richtungHinweis = el<HTMLElement>('richtung-hinweis');
 const fsaModusHinweis = el<HTMLElement>('fsaModus-hinweis');
+const vermoegensartHinweis = el<HTMLElement>('vermoegensart-hinweis');
 const beispieleKnoten = el<HTMLElement>('beispiele');
 
 /* ------------------------------------------------------- Formular auslesen */
@@ -133,6 +134,8 @@ function aktualisiereSichtbarkeit(zustand: Formularzustand): void {
     zustand.richtung === 'anlagebetrag'
       ? 'Sie geben Ihr Wunsch-Einkommen vor und erhalten den dafür nötigen Anlagebetrag.'
       : 'Sie geben Ihren Anlagebetrag vor und erhalten das daraus mögliche Monatseinkommen.';
+
+  vermoegensartHinweis.hidden = zustand.vermoegensart !== 'betrieb';
 
   fsaModusHinweis.textContent =
     zustand.steuer.freistellungsauftragModus === 'nach_teilfreistellung'

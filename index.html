@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2312467b'/%3E%3Ctext x='16' y='23' font-family='system-ui,sans-serif' font-size='19' font-weight='700' fill='%23fff' text-anchor='middle'%3E%E2%82%AC%3C/text%3E%3C/svg%3E" />
+    <title>Ausschüttungsrechner – Extra-Einkommen aus Fonds</title>
+    <meta
+      name="description"
+      content="Prototyp eines Rechners für monatliches Extra-Einkommen aus ausschüttenden Fonds – in beide Richtungen."
+    />
+    <link rel="stylesheet" href="./src/styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="app-header">
+        <div class="app-header__inner">
+          <div>
+            <p class="eyebrow">Prototyp</p>
+            <h1>Ausschüttungsrechner</h1>
+            <p class="sub">
+              Monatliches Extra-Einkommen aus ausschüttenden Fonds – in beide Richtungen
+              gerechnet.
+            </p>
+          </div>
+          <a class="link-button" href="./theorie.html">Theorie &amp; Formeln →</a>
+        </div>
+      </header>
+
+      <main class="layout">
+        <form class="card" id="rechner-form" novalidate>
+          <fieldset class="feld">
+            <legend class="feld__label">Was wollen Sie berechnen?</legend>
+            <div class="segmented" role="radiogroup">
+              <label class="segmented__option">
+                <input type="radio" name="richtung" value="anlagebetrag" checked />
+                <span>Anlagebetrag</span>
+              </label>
+              <label class="segmented__option">
+                <input type="radio" name="richtung" value="einkommen" />
+                <span>Monatliches Einkommen</span>
+              </label>
+            </div>
+            <p class="hinweis" id="richtung-hinweis"></p>
+          </fieldset>
+
+          <fieldset class="feld">
+            <legend class="feld__label">Es handelt sich um</legend>
+            <div class="segmented" role="radiogroup">
+              <label class="segmented__option">
+                <input type="radio" name="vermoegensart" value="privat" checked />
+                <span>Privatvermögen</span>
+              </label>
+              <label class="segmented__option">
+                <input type="radio" name="vermoegensart" value="betrieb" />
+                <span>Betriebsvermögen</span>
+              </label>
+            </div>
+          </fieldset>
+
+          <hr />
+
+          <div class="feld" data-richtung="anlagebetrag">
+            <label class="feld__label" for="ziel"
+              >Gewünschtes monatliches Extra-Einkommen <span class="pflicht">*</span></label
+            >
+            <div class="input-zeile">
+              <input id="ziel" name="ziel" type="text" inputmode="decimal" value="250,00" />
+              <span class="einheit">Euro</span>
+            </div>
+          </div>
+
+          <div class="feld" data-richtung="einkommen" hidden>
+            <label class="feld__label" for="anlagebetrag"
+              >Anlagebetrag <span class="pflicht">*</span></label
+            >
+            <div class="input-zeile">
+              <input
+                id="anlagebetrag"
+                name="anlagebetrag"
+                type="text"
+                inputmode="decimal"
+                value="100.000,00"
+              />
+              <span class="einheit">Euro</span>
+            </div>
+          </div>
+
+          <div class="feld" data-vermoegensart="privat">
+            <label class="feld__label" for="freistellungsauftrag">Freistellungsauftrag</label>
+            <div class="input-zeile">
+              <input
+                id="freistellungsauftrag"
+                name="freistellungsauftrag"
+                type="text"
+                inputmode="decimal"
+                value="1.000,00"
+              />
+              <span class="einheit">Euro</span>
+            </div>
+            <p class="hinweis">
+              Noch freier Sparer-Pauschbetrag: max. 1.000 € (Einzel-) bzw. 2.000 €
+              (Zusammenveranlagung).
+            </p>
+          </div>
+
+          <div class="feld" data-vermoegensart="privat">
+            <label class="feld__label" for="kirchensteuer">Kirchensteuer</label>
+            <select id="kirchensteuer" name="kirchensteuer">
+              <option value="0" selected>keine</option>
+              <option value="0.08">8 % (Bayern, Baden-Württemberg)</option>
+              <option value="0.09">9 % (übrige Bundesländer)</option>
+            </select>
+          </div>
+
+          <div class="feld" data-vermoegensart="betrieb" hidden>
+            <label class="feld__label" for="steuersatz"
+              >Persönlicher Steuersatz <span class="pflicht">*</span></label
+            >
+            <div class="input-zeile">
+              <input id="steuersatz" name="steuersatz" type="text" inputmode="decimal" value="42,00" />
+              <span class="einheit">%</span>
+            </div>
+            <p class="hinweis">
+              Im Betriebsvermögen greift statt der Abgeltungsteuer der persönliche
+              Einkommensteuersatz – dafür gelten höhere Teilfreistellungen.
+            </p>
+          </div>
+
+          <div class="feld">
+            <label class="feld__label" for="fonds"
+              >Fondsauswahl <span class="pflicht">*</span></label
+            >
+            <select id="fonds" name="fonds"></select>
+            <p class="hinweis" id="fonds-info"></p>
+          </div>
+
+          <div class="feld">
+            <label class="feld__label" for="ausgabeaufschlag"
+              >Ausgabeaufschlag <span class="pflicht">*</span></label
+            >
+            <div class="input-zeile">
+              <input
+                id="ausgabeaufschlag"
+                name="ausgabeaufschlag"
+                type="text"
+                inputmode="decimal"
+                value="4,00"
+              />
+              <span class="einheit">%</span>
+            </div>
+          </div>
+
+          <div class="feld">
+            <label class="feld__label" for="aufschlagModus">Konvention Ausgabeaufschlag</label>
+            <select id="aufschlagModus" name="aufschlagModus">
+              <option value="auf_anteilwert" selected>
+                auf den Anteilwert aufgeschlagen – Betrag × (1 + a)
+              </option>
+              <option value="im_anlagebetrag">
+                im Anlagebetrag enthalten – Betrag ÷ (1 − a)
+              </option>
+            </select>
+          </div>
+
+          <div class="feld feld--toggle">
+            <label class="switch">
+              <input type="checkbox" id="steuern" name="steuern" checked />
+              <span class="switch__track"><span class="switch__thumb"></span></span>
+              <span class="switch__label"
+                >Steuern bei monatlichen Ausschüttungen berücksichtigen</span
+              >
+            </label>
+          </div>
+
+          <hr />
+
+          <div class="feld">
+            <p class="feld__label">Beispiele laden</p>
+            <div class="beispiele" id="beispiele"></div>
+          </div>
+        </form>
+
+        <section class="ergebnis-spalte" aria-live="polite">
+          <div class="card ergebnis" id="ergebnis"></div>
+          <div class="card rechenweg" id="rechenweg"></div>
+        </section>
+      </main>
+
+      <footer class="app-footer">
+        <p>
+          Prototyp mit <strong>fiktiven Fonds</strong>. Alle Namen, ISINs, Anteilwerte und
+          Ausschüttungen sind frei erfunden. Keine Anlage- oder Steuerberatung.
+        </p>
+      </footer>
+    </div>
+
+    <script type="module" src="./src/main.ts"></script>
+  </body>
+</html>

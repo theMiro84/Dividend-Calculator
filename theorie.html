@@ -1,0 +1,915 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2312467b'/%3E%3Ctext x='16' y='23' font-family='system-ui,sans-serif' font-size='19' font-weight='700' fill='%23fff' text-anchor='middle'%3E%E2%82%AC%3C/text%3E%3C/svg%3E" />
+    <title>Theorie: Wie ein Ausschüttungsrechner rechnet</title>
+    <meta
+      name="description"
+      content="Die Mathematik hinter Rechnern für monatliches Extra-Einkommen aus ausschüttenden Fonds – Formeln, Steuern, Inversion und Grenzen des Modells."
+    />
+    <style>
+      :root {
+        --blau: #12467b;
+        --blau-hell: #1d6fbd;
+        --blau-sanft: #eaf2fb;
+        --gruen: #0f7a5a;
+        --gruen-sanft: #e6f5ef;
+        --gelb-sanft: #fdf4e3;
+        --gelb-rand: #e0b451;
+        --text: #16202c;
+        --text-schwach: #5b6875;
+        --linie: #dbe2ea;
+        --flaeche: #ffffff;
+        --grund: #f4f6f9;
+        --code-grund: #f0f3f7;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --blau: #7fb2e8;
+          --blau-hell: #a9cdf5;
+          --blau-sanft: #16283c;
+          --gruen: #5cc4a0;
+          --gruen-sanft: #12271f;
+          --gelb-sanft: #2a2416;
+          --gelb-rand: #8a6f2f;
+          --text: #e7edf4;
+          --text-schwach: #9aa8b8;
+          --linie: #27333f;
+          --flaeche: #131a22;
+          --grund: #0c1117;
+          --code-grund: #101821;
+        }
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--grund);
+        color: var(--text);
+        font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        font-size: 17px;
+        line-height: 1.65;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .seite {
+        max-width: 860px;
+        margin: 0 auto;
+        padding: 24px 20px 80px;
+      }
+
+      header.kopf {
+        padding: 16px 0 32px;
+        border-bottom: 1px solid var(--linie);
+        margin-bottom: 32px;
+      }
+
+      .eyebrow {
+        margin: 0;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--blau);
+      }
+
+      h1 {
+        margin: 6px 0 10px;
+        font-size: clamp(30px, 5vw, 44px);
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+      }
+
+      h2 {
+        margin: 56px 0 12px;
+        font-size: clamp(22px, 3.2vw, 28px);
+        line-height: 1.2;
+        letter-spacing: -0.01em;
+        padding-top: 8px;
+        border-top: 1px solid var(--linie);
+      }
+
+      h3 {
+        margin: 32px 0 8px;
+        font-size: 19px;
+      }
+
+      p,
+      ul,
+      ol {
+        margin: 0 0 16px;
+      }
+
+      li {
+        margin-bottom: 6px;
+      }
+
+      a {
+        color: var(--blau-hell);
+      }
+
+      .lead {
+        font-size: 19px;
+        color: var(--text-schwach);
+        max-width: 60ch;
+      }
+
+      .link-button {
+        display: inline-block;
+        margin-top: 8px;
+        padding: 10px 16px;
+        border: 1px solid var(--linie);
+        border-radius: 999px;
+        background: var(--flaeche);
+        color: var(--blau);
+        font-size: 15px;
+        font-weight: 600;
+        text-decoration: none;
+      }
+
+      .link-button:hover {
+        border-color: var(--blau);
+      }
+
+      .kasten {
+        border: 1px solid var(--linie);
+        border-left: 4px solid var(--blau);
+        border-radius: 10px;
+        background: var(--flaeche);
+        padding: 18px 20px;
+        margin: 24px 0;
+      }
+
+      .kasten--antwort {
+        border-left-color: var(--gruen);
+        background: var(--gruen-sanft);
+      }
+
+      .kasten--warnung {
+        border-left-color: var(--gelb-rand);
+        background: var(--gelb-sanft);
+      }
+
+      .kasten h3 {
+        margin-top: 0;
+      }
+
+      .kasten p:last-child,
+      .kasten ul:last-child {
+        margin-bottom: 0;
+      }
+
+      .formel {
+        background: var(--code-grund);
+        border: 1px solid var(--linie);
+        border-radius: 10px;
+        padding: 16px 18px;
+        margin: 18px 0;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 15px;
+        line-height: 1.9;
+        overflow-x: auto;
+        white-space: pre;
+      }
+
+      .formel .kommentar {
+        color: var(--text-schwach);
+      }
+
+      code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.9em;
+        background: var(--code-grund);
+        padding: 1px 5px;
+        border-radius: 5px;
+      }
+
+      .tabelle-huelle {
+        overflow-x: auto;
+        margin: 20px 0;
+        border: 1px solid var(--linie);
+        border-radius: 10px;
+        background: var(--flaeche);
+      }
+
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        font-size: 15px;
+      }
+
+      th,
+      td {
+        padding: 10px 14px;
+        text-align: left;
+        border-bottom: 1px solid var(--linie);
+        white-space: nowrap;
+      }
+
+      th {
+        background: var(--blau-sanft);
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--blau);
+      }
+
+      tbody tr:last-child td {
+        border-bottom: none;
+      }
+
+      td.zahl,
+      th.zahl {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .schritte {
+        counter-reset: schritt;
+        list-style: none;
+        padding: 0;
+        margin: 24px 0;
+      }
+
+      .schritte li {
+        counter-increment: schritt;
+        position: relative;
+        padding: 0 0 18px 46px;
+        margin: 0;
+        border-left: 2px solid var(--linie);
+        margin-left: 15px;
+      }
+
+      .schritte li:last-child {
+        border-left-color: transparent;
+        padding-bottom: 0;
+      }
+
+      .schritte li::before {
+        content: counter(schritt);
+        position: absolute;
+        left: -16px;
+        top: -2px;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: var(--blau);
+        color: #fff;
+        font-size: 14px;
+        font-weight: 700;
+        display: grid;
+        place-items: center;
+      }
+
+      .schritte strong {
+        display: block;
+        margin-bottom: 2px;
+      }
+
+      .schritte .rechnung {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 14px;
+        color: var(--text-schwach);
+        display: block;
+      }
+
+      .schritte .ergebnis {
+        font-weight: 600;
+        color: var(--gruen);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .inhalt {
+        background: var(--flaeche);
+        border: 1px solid var(--linie);
+        border-radius: 10px;
+        padding: 18px 22px;
+      }
+
+      .inhalt ol {
+        margin: 8px 0 0;
+        padding-left: 20px;
+      }
+
+      footer.fuss {
+        margin-top: 64px;
+        padding-top: 20px;
+        border-top: 1px solid var(--linie);
+        color: var(--text-schwach);
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="seite">
+      <header class="kopf">
+        <p class="eyebrow">Theorie</p>
+        <h1>Wie ein Ausschüttungsrechner rechnet</h1>
+        <p class="lead">
+          Die vollständige Mathematik hinter Rechnern für „monatliches Extra-Einkommen“ aus
+          ausschüttenden Fonds – beide Rechenrichtungen, die Steuerformel und ihre Umkehrung,
+          plus eine ehrliche Liste dessen, was das Modell <em>nicht</em> abbildet.
+        </p>
+        <a class="link-button" href="./index.html">← Zum Rechner</a>
+      </header>
+
+      <nav class="inhalt" aria-label="Inhaltsverzeichnis">
+        <strong>Inhalt</strong>
+        <ol>
+          <li><a href="#kurzantwort">Die zwei Fragen, kurz beantwortet</a></li>
+          <li><a href="#modell">Das Modell in einer Zeile</a></li>
+          <li><a href="#bausteine">Die drei Bausteine</a></li>
+          <li><a href="#richtung-1">Richtung 1: Anlagebetrag → Einkommen</a></li>
+          <li><a href="#richtung-2">Richtung 2: Einkommen → Anlagebetrag</a></li>
+          <li><a href="#wertentwicklung">Warum die Wertentwicklung nicht vorkommt</a></li>
+          <li><a href="#plausibilisierung">Plausibilisierung an einer echten Ausgabe</a></li>
+          <li><a href="#beispiele">Drei durchgerechnete Beispiele</a></li>
+          <li><a href="#grenzen">Grenzen des Modells</a></li>
+          <li><a href="#tests">Wie das Ganze getestet wird</a></li>
+        </ol>
+      </nav>
+
+      <h2 id="kurzantwort">1. Die zwei Fragen, kurz beantwortet</h2>
+
+      <div class="kasten kasten--antwort">
+        <h3>Frage 1: Wie funktioniert die Mathematik dahinter?</h3>
+        <p>
+          Es ist im Kern eine <strong>einzige Multiplikation plus eine Steuerformel</strong>. Der
+          Anlagebetrag wird um den Ausgabeaufschlag bereinigt, mit der Ausschüttungsrendite des
+          Fonds multipliziert und durch zwölf geteilt. Auf das Ergebnis wird die deutsche
+          Kapitalertragsbesteuerung angewendet. Die zweite Richtung des Rechners ist exakt die
+          <strong>Umkehrfunktion</strong> dieser Kette – kein zweites Modell, sondern dieselbe
+          Gleichung, nach der anderen Variablen aufgelöst.
+        </p>
+      </div>
+
+      <div class="kasten kasten--antwort">
+        <h3>Frage 2: Geht die Wertentwicklung des Fonds ein?</h3>
+        <p>
+          <strong>Nein.</strong> In der Formel taucht kein einziger Performance-Parameter auf.
+          Relevant ist ausschließlich die <strong>Ausschüttungsquote</strong> (die „3, 4 oder
+          5 %“) beziehungsweise – exakter – die Ausschüttung je Anteil im Verhältnis zum
+          Anteilwert. Der Rechner unterstellt implizit einen konstanten Kurs und eine konstante
+          Ausschüttung. Details und die Konsequenzen dieser Annahme stehen in
+          <a href="#wertentwicklung">Abschnitt 6</a>.
+        </p>
+      </div>
+
+      <h2 id="modell">2. Das Modell in einer Zeile</h2>
+
+      <p>
+        Alles, was ein solcher Rechner tut, lässt sich auf eine Kette von vier Größen reduzieren:
+      </p>
+
+      <div class="formel">Anlagebetrag  →  investiertes Kapital  →  Bruttoausschüttung  →  Nettoausschüttung
+              (Ausgabeaufschlag)      (Ausschüttungsrendite)    (Steuern)</div>
+
+      <p>
+        Jeder Pfeil ist eine <strong>streng monotone, stetige und damit umkehrbare</strong>
+        Funktion. Genau deshalb kann der Rechner in beide Richtungen laufen: Es gibt zu jedem
+        Wunsch-Einkommen genau einen passenden Anlagebetrag und umgekehrt. Das ist keine
+        Selbstverständlichkeit – der Freistellungsauftrag erzeugt einen Knick in der Kurve, und
+        die Umkehrung muss diesen Knick korrekt behandeln (siehe <a href="#richtung-2">Abschnitt 5</a>).
+      </p>
+
+      <h2 id="bausteine">3. Die drei Bausteine</h2>
+
+      <h3>3.1 Die Ausschüttungsrendite</h3>
+
+      <p>
+        Ein ausschüttender Fonds zahlt einen Betrag <em>je Anteil</em> aus, nicht einen Prozentsatz.
+        Die Prozentangabe entsteht erst durch den Bezug auf den Anteilwert:
+      </p>
+
+      <div class="formel">r = (d × f) / p
+
+<span class="kommentar">r = Ausschüttungsrendite p. a.
+d = Ausschüttung je Anteil und Termin (EUR)
+f = Ausschüttungstermine pro Jahr (12 = monatlich, 4 = quartalsweise, 1 = jährlich)
+p = Anteilwert / Rücknahmepreis (EUR)</span></div>
+
+      <p>
+        Beispiel: 0,25 € je Anteil, monatlich, bei einem Anteilwert von 100,00 € ergeben
+        <code>(0,25 × 12) / 100 = 3,00 %</code> p. a. Das ist die Zahl, die in der Fondsauswahl
+        eines solchen Rechners als „3 %“, „4 %“ oder „5 %“ erscheint.
+      </p>
+
+      <p>
+        Für die reine Zahl ist die Frequenz irrelevant – 0,25 € monatlich und 3,00 € jährlich
+        ergeben dieselbe Rendite. Für die <em>Realität</em> ist sie es nicht: Bei jährlicher
+        Ausschüttung weist der Rechner ein <strong>rechnerisch geglättetes</strong>
+        Monatseinkommen aus, das tatsächlich einmal im Jahr in einer Summe fließt.
+      </p>
+
+      <h3>3.2 Der Ausgabeaufschlag</h3>
+
+      <p>
+        Der Ausgabeaufschlag <em>a</em> ist der Teil des eingezahlten Geldes, der nie in
+        Fondsanteilen landet und deshalb auch nie ausschüttet. Er ist damit der einzige Kostenblock,
+        der im Modell explizit auftaucht. Es gibt zwei verbreitete Konventionen:
+      </p>
+
+      <div class="tabelle-huelle">
+        <table>
+          <thead>
+            <tr>
+              <th>Konvention</th>
+              <th>Kapital → Anlagebetrag</th>
+              <th>Anlagebetrag → Kapital</th>
+              <th class="zahl">bei 20.000 € / 4 %</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>auf den Anteilwert aufgeschlagen<br /><span style="color: var(--text-schwach)">(Prospekt-Standard)</span></td>
+              <td><code>A = K × (1 + a)</code></td>
+              <td><code>K = A ÷ (1 + a)</code></td>
+              <td class="zahl">20.800,00 €</td>
+            </tr>
+            <tr>
+              <td>im Anlagebetrag enthalten</td>
+              <td><code>A = K ÷ (1 − a)</code></td>
+              <td><code>K = A × (1 − a)</code></td>
+              <td class="zahl">20.833,33 €</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>
+        Der relative Unterschied beträgt exakt <code>a² / (1 − a²)</code>, bei 4 % also rund
+        0,16 %. Klein – aber wer die Ausgabe eines fremden Rechners nachbauen will, merkt ihn.
+        Der Prototyp macht die Konvention deshalb zu einer bewussten Auswahl statt zu einer
+        stillen Annahme.
+      </p>
+
+      <h3>3.3 Die Steuer</h3>
+
+      <p>
+        Ausschüttungen inländischer wie ausländischer Investmentfonds sind Kapitalerträge. Drei
+        Regelwerke greifen ineinander, und <strong>die Reihenfolge ist ergebnisrelevant</strong>:
+      </p>
+
+      <div class="formel">1. Teilfreistellung          steuerpflichtig = D × (1 − tf)
+2. Freistellungsauftrag      BMG            = max(0; steuerpflichtig − f)
+3. Steuersatz                Steuer         = BMG × s
+
+<span class="kommentar">D  = Bruttoausschüttung p. a.
+tf = Teilfreistellungssatz (§ 20 InvStG)
+f  = noch freier Sparer-Pauschbetrag
+s  = effektiver Steuersatz</span></div>
+
+      <p><strong>Teilfreistellung (§ 20 InvStG).</strong> Ein fester Anteil der Ausschüttung
+      bleibt steuerfrei – als pauschaler Ausgleich für die Steuer, die der Fonds bereits auf
+      Ebene des Fondsvermögens gezahlt hat. Der Satz hängt allein davon ab, was der Fonds laut
+      Anlagebedingungen dauerhaft halten muss:</p>
+
+      <div class="tabelle-huelle">
+        <table>
+          <thead>
+            <tr>
+              <th>Fondstyp</th>
+              <th class="zahl">Privatvermögen</th>
+              <th class="zahl">Betriebsvermögen (ESt)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Aktienfonds (Kapitalbeteiligungen ≥ 51 %)</td><td class="zahl">30 %</td><td class="zahl">60 %</td></tr>
+            <tr><td>Mischfonds (Kapitalbeteiligungen ≥ 25 %)</td><td class="zahl">15 %</td><td class="zahl">30 %</td></tr>
+            <tr><td>Immobilienfonds (Schwerpunkt Inland)</td><td class="zahl">60 %</td><td class="zahl">60 %</td></tr>
+            <tr><td>Immobilienfonds (Schwerpunkt Ausland)</td><td class="zahl">80 %</td><td class="zahl">80 %</td></tr>
+            <tr><td>sonstige Fonds (z. B. Rentenfonds)</td><td class="zahl">0 %</td><td class="zahl">0 %</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p><strong>Freistellungsauftrag.</strong> Der Sparer-Pauschbetrag (seit 2023: 1.000 €
+      einzeln, 2.000 € bei Zusammenveranlagung) wird <em>nach</em> der Teilfreistellung
+      abgezogen. Diese Reihenfolge ist der häufigste Fehler in selbstgebauten Rechnern: Zieht man
+      zuerst den Pauschbetrag ab, kommt systematisch zu wenig Steuer heraus.</p>
+
+      <p><strong>Steuersatz.</strong> Im Privatvermögen gilt die Abgeltungsteuer von 25 % plus
+      5,5 % Solidaritätszuschlag. Wer kirchensteuerpflichtig ist, zahlt zusätzlich 8 % oder 9 % –
+      wobei die Kirchensteuer ihrerseits die Bemessungsgrundlage der Kapitalertragsteuer mindert
+      (§ 32d Abs. 1 EStG). Aus <code>e / (4 + k)</code> folgt der effektive Satz:</p>
+
+      <div class="formel">s = 1 / (4 + k) × (1 + 0,055 + k)</div>
+
+      <div class="tabelle-huelle">
+        <table>
+          <thead>
+            <tr>
+              <th>Konstellation</th>
+              <th class="zahl">effektiver Satz s</th>
+              <th class="zahl">Aktienfonds nach TF</th>
+              <th class="zahl">Mischfonds nach TF</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>ohne Kirchensteuer</td><td class="zahl">26,3750 %</td><td class="zahl">18,4625 %</td><td class="zahl">22,4188 %</td></tr>
+            <tr><td>Kirchensteuer 8 %</td><td class="zahl">27,8186 %</td><td class="zahl">19,4730 %</td><td class="zahl">23,6458 %</td></tr>
+            <tr><td>Kirchensteuer 9 %</td><td class="zahl">27,9951 %</td><td class="zahl">19,5966 %</td><td class="zahl">23,7958 %</td></tr>
+            <tr><td>Betriebsvermögen, 42 % + Soli</td><td class="zahl">44,3100 %</td><td class="zahl">17,7240 %</td><td class="zahl">31,0170 %</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>
+        Die letzten beiden Spalten zeigen die eigentlich interessante Größe: die
+        <em>effektive Steuerquote auf die Bruttoausschüttung</em>, also <code>(1 − tf) × s</code>.
+        Bemerkenswert ist die letzte Zeile – im Betriebsvermögen ist der nominale Steuersatz mit
+        44,31 % fast doppelt so hoch, durch die doppelte Teilfreistellung liegt ein Aktienfonds
+        dort effektiv aber sogar leicht <em>unter</em> dem Privatvermögen.
+      </p>
+
+      <h2 id="richtung-1">4. Richtung 1: Anlagebetrag → Einkommen</h2>
+
+      <p>Die Vorwärtsrichtung ist eine reine Auswertung der Kette:</p>
+
+      <div class="formel">K = A ÷ (1 + a)                    <span class="kommentar">Ausgabeaufschlag herausrechnen</span>
+n = K ÷ p                          <span class="kommentar">Anteile (rechnerisch teilbar)</span>
+D = n × d × f  = K × r             <span class="kommentar">Bruttoausschüttung p. a.</span>
+St = max(0; D × (1 − tf) − f) × s  <span class="kommentar">Steuer p. a.</span>
+N = D − St                         <span class="kommentar">Nettoausschüttung p. a.</span>
+
+Monatseinkommen brutto = D ÷ 12
+Monatseinkommen netto  = N ÷ 12</div>
+
+      <p>
+        Der Umweg über die Anteile <code>n</code> ist mathematisch überflüssig – <code>D = K × r</code>
+        liefert dasselbe – aber er macht sichtbar, was tatsächlich passiert: Man kauft eine feste
+        Stückzahl Anteile, und <em>diese Stückzahl</em> bestimmt die Ausschüttung. Bei monatlich
+        ausschüttenden Fonds ist die Monatsausschüttung exakt <code>n × d</code>.
+      </p>
+
+      <h2 id="richtung-2">5. Richtung 2: Einkommen → Anlagebetrag</h2>
+
+      <p>
+        Rückwärts wird jeder Schritt invertiert. Der einzig nichttriviale Teil ist die Umkehrung
+        der Steuerformel. Mit <code>q = 1 − tf</code> lautet der Zusammenhang zwischen brutto und
+        netto:
+      </p>
+
+      <div class="formel">N = D − max(0; D × q − f) × s</div>
+
+      <p>Das ist eine stückweise lineare Funktion mit einem Knick bei <code>D = f / q</code>:</p>
+
+      <ul>
+        <li>
+          <strong>Unterhalb des Knicks</strong> deckt der Freistellungsauftrag den gesamten
+          steuerpflichtigen Anteil ab. Es gilt schlicht <code>D = N</code> – brutto gleich netto.
+        </li>
+        <li>
+          <strong>Oberhalb des Knicks</strong> ist <code>N = D × (1 − q × s) + f × s</code>, und
+          Auflösen nach <code>D</code> ergibt:
+        </li>
+      </ul>
+
+      <div class="formel">D = (N − f × s) / (1 − q × s)</div>
+
+      <p>
+        Beide Äste stoßen bei <code>N = f / q</code> stetig aneinander – einsetzen liefert
+        <code>D = f × (1 − q·s) / (q × (1 − q·s)) = f / q</code>. Die Funktion ist außerdem streng
+        monoton steigend, weil <code>1 − q × s &gt; 0</code> für alle realistischen Sätze gilt.
+        Damit ist die Umkehrung eindeutig, und der komplette Rückweg lautet:
+      </p>
+
+      <div class="formel">N   = Wunschbetrag × 12            <span class="kommentar">Jahresziel netto</span>
+D   = (N − f × s) / (1 − q × s)   <span class="kommentar">bzw. D = N unterhalb des Knicks</span>
+K   = D ÷ r                       <span class="kommentar">benötigtes Kapital</span>
+A   = K × (1 + a)                 <span class="kommentar">Anlagebetrag inkl. Ausgabeaufschlag</span></div>
+
+      <div class="kasten">
+        <h3>Warum solche Rechner zwei Zahlen ausweisen</h3>
+        <p>
+          Der Original-Rechner beschriftet sein Ergebnis mit „Steuern bei monatlichen
+          Ausschüttungen unberücksichtigt / berücksichtigt“ – er zeigt beide Lesarten
+          nebeneinander. Der Grund: Ohne Steuerbetrachtung wird der Wunschbetrag als
+          <em>Brutto</em>ausschüttung interpretiert (<code>D = N</code>), mit Steuerbetrachtung als
+          <em>Netto</em>betrag. Der zweite Wert liegt je nach Fondstyp 5 % bis 45 % höher. Der
+          Prototyp übernimmt diese Doppelausgabe.
+        </p>
+      </div>
+
+      <h3>Der Knick, konkret</h3>
+
+      <p>
+        Für einen Mischfonds mit 4 % Ausschüttungsrendite, 4 % Ausgabeaufschlag und 1.000 €
+        Freistellungsauftrag liegt der Knick bei einer Bruttoausschüttung von
+        <code>1.000 ÷ 0,85 = 1.176,47 €</code> pro Jahr. Das entspricht einem Kapital von
+        <code>29.411,76 €</code> beziehungsweise einem Anlagebetrag von <strong>30.588,24 €</strong>.
+        Bis zu diesem Betrag sind Brutto- und Nettoausschüttung identisch – der Rechner zeigt
+        dann zweimal dieselbe Zahl. Der Prototyp blendet diese Grenze aktiv ein.
+      </p>
+
+      <h2 id="wertentwicklung">6. Warum die Wertentwicklung nicht vorkommt</h2>
+
+      <p>
+        Die Frage, ob die Kursentwicklung des Fonds eingeht, lässt sich am Modell direkt ablesen:
+        In <code>D = K × r</code> gibt es keinen Zeitindex. Es wird kein einziges Jahr in die
+        Zukunft gerechnet. Das Modell ist ein <strong>Zustandsmodell</strong>, kein
+        Projektionsmodell – es beantwortet „Wie viel schüttet dieses Kapital <em>heute</em> aus?“
+        und nicht „Wie entwickelt sich mein Vermögen?“.
+      </p>
+
+      <p>Dahinter stecken zwei stillschweigende Annahmen:</p>
+
+      <ol>
+        <li>
+          <strong>Der Anteilwert bleibt konstant.</strong> Nur dann bleibt die Zahl der Anteile,
+          die man für einen bestimmten Betrag bekommt, aussagekräftig.
+        </li>
+        <li>
+          <strong>Die Ausschüttung je Anteil bleibt konstant.</strong> Nur dann bleibt das
+          Monatseinkommen über die Zeit stabil.
+        </li>
+      </ol>
+
+      <p>
+        Interessant ist, dass sich diese beiden Annahmen teilweise gegenseitig stützen: Steigt der
+        Kurs und wird die Ausschüttung je Anteil im gleichen Verhältnis erhöht, bleibt die
+        Ausschüttungsrendite <code>r</code> unverändert – und mit ihr das Ergebnis des Rechners.
+        Die Rechnung ist also robuster gegenüber gemeinsamer Bewegung von Kurs und Ausschüttung
+        als gegenüber einer Entkopplung der beiden.
+      </p>
+
+      <div class="kasten kasten--warnung">
+        <h3>Was das Weglassen der Performance verdeckt</h3>
+        <ul>
+          <li>
+            <strong>Substanzausschüttung.</strong> Schüttet ein Fonds mehr aus, als er erwirtschaftet,
+            zahlt er aus dem Fondsvermögen – der Anteilwert sinkt entsprechend. Das Modell zeigt
+            weiterhin ein stabiles Einkommen, obwohl das Vermögen schrumpft. Genau hier ist der
+            blinde Fleck am größten.
+          </li>
+          <li>
+            <strong>Kaufkraft.</strong> Ein nominal konstantes Monatseinkommen verliert bei 2 %
+            Inflation in 20 Jahren rund ein Drittel seiner Kaufkraft.
+          </li>
+          <li>
+            <strong>Kursrisiko.</strong> Der Anlagebetrag ist nicht garantiert. Er kann steigen
+            oder fallen, ohne dass sich am ausgewiesenen Einkommen etwas ändert.
+          </li>
+          <li>
+            <strong>Keine Ausschüttungsgarantie.</strong> Ausschüttungen werden pro Termin
+            beschlossen und können gekürzt oder ausgesetzt werden.
+          </li>
+        </ul>
+      </div>
+
+      <p>
+        Warum rechnen die Anbieter trotzdem so? Weil jede Projektion eine Renditeannahme
+        erforderte, die niemand seriös liefern kann – und weil ein Rechner, der eine solche
+        Annahme trifft, prospektrechtlich schnell zur Prognose wird. Das ausschüttungsbasierte
+        Modell ist der kleinste gemeinsame Nenner, der ohne Zukunftsannahme auskommt.
+        Bezahlt wird das mit den vier Punkten oben.
+      </p>
+
+      <h2 id="plausibilisierung">7. Plausibilisierung an einer echten Ausgabe</h2>
+
+      <p>
+        Ein Screenshot des Original-Rechners zeigt: gewünschtes Extra-Einkommen 50,00 €,
+        Ausgabeaufschlag 4,00 %, Steuern unberücksichtigt → <strong>Anlagebetrag 21.508,83 €</strong>.
+        Damit lässt sich das Modell rückwärts prüfen.
+      </p>
+
+      <div class="formel">D = 50 × 12                     = 600,00 € p. a.
+K = 21.508,83 ÷ 1,04            = 20.681,57 €
+r = 600,00 ÷ 20.681,57          = 2,9011 % p. a.</div>
+
+      <p>
+        Es kommt also <strong>keine glatte Prozentzahl</strong> heraus, sondern 2,90 %. Das ist
+        das entscheidende Indiz: Der Rechner arbeitet nicht mit einer gerundeten Quote aus einem
+        Dropdown, sondern mit den <strong>tatsächlichen Fondsdaten</strong> – Ausschüttung je
+        Anteil geteilt durch den aktuellen Anteilwert. Ein Anteilwert von 103,41 € bei 0,25 €
+        monatlicher Ausschüttung ergibt genau diese 2,9011 %.
+      </p>
+
+      <p>
+        Der Screenshot allein kann übrigens nicht entscheiden, welche der beiden
+        Ausgabeaufschlag-Konventionen verwendet wurde: Mit <code>K = A ÷ 1,04</code> passt ein
+        Anteilwert von 103,41 €, mit <code>K = A × 0,96</code> einer von 103,24 € – beide sind
+        plausible Kurse. Der Prototyp bildet deshalb beide Wege ab. Der fiktive Fonds
+        <em>Meridian Dynamic Multi Asset SRI 30 AM</em> reproduziert die Zahl auf unter einen Euro
+        genau (21.509,28 € statt 21.508,83 €); ein automatischer Test hält das fest.
+      </p>
+
+      <h2 id="beispiele">8. Drei durchgerechnete Beispiele</h2>
+
+      <h3>Beispiel 1 – Richtung „Anlagebetrag“: 250 € netto pro Monat</h3>
+
+      <p>
+        Fonds: Mischfonds mit 4,00 % Ausschüttungsrendite. Ausgabeaufschlag 4 %, Privatvermögen,
+        Freistellungsauftrag 1.000 €, keine Kirchensteuer (<code>s = 26,375 %</code>,
+        <code>tf = 15 %</code>, <code>q = 0,85</code>).
+      </p>
+
+      <ol class="schritte">
+        <li>
+          <strong>Jahresziel netto</strong>
+          <span class="rechnung">N = 250 × 12</span>
+          <span class="ergebnis">3.000,00 € netto p. a.</span>
+        </li>
+        <li>
+          <strong>Knick prüfen</strong>
+          <span class="rechnung">f ÷ q = 1.000 ÷ 0,85 = 1.176,47 € &lt; 3.000 €</span>
+          <span class="ergebnis">Steuer fällt an → zweiter Ast der Formel</span>
+        </li>
+        <li>
+          <strong>Brutto hochrechnen</strong>
+          <span class="rechnung">D = (3.000 − 1.000 × 0,26375) ÷ (1 − 0,85 × 0,26375) = 2.736,25 ÷ 0,7758125</span>
+          <span class="ergebnis">3.526,95 € brutto p. a. (Steuer: 526,95 €)</span>
+        </li>
+        <li>
+          <strong>Kapital</strong>
+          <span class="rechnung">K = 3.526,95 ÷ 0,04</span>
+          <span class="ergebnis">88.173,69 €</span>
+        </li>
+        <li>
+          <strong>Anlagebetrag</strong>
+          <span class="rechnung">A = 88.173,69 × 1,04</span>
+          <span class="ergebnis">91.700,64 €</span>
+        </li>
+      </ol>
+
+      <p>
+        Zum Vergleich: Ohne Steuerbetrachtung wären es glatte <strong>78.000,00 €</strong>
+        (<code>3.000 ÷ 0,04 × 1,04</code>). Die Steuer kostet also rund <strong>17,6 %</strong>
+        zusätzliches Kapital – der Betrag, den viele Überschlagsrechnungen unterschlagen.
+      </p>
+
+      <h3>Beispiel 2 – Richtung „Einkommen“: 100.000 € anlegen</h3>
+
+      <p>
+        Fonds: Aktienfonds mit 5,00 % Ausschüttungsrendite, Anteilwert 120,00 €, 0,50 € monatlich
+        je Anteil. Ausgabeaufschlag 5 %, Privatvermögen, Freistellungsauftrag 1.000 €,
+        Kirchensteuer 9 % (<code>s = 27,9951 %</code>, <code>tf = 30 %</code>).
+      </p>
+
+      <ol class="schritte">
+        <li>
+          <strong>Ausgabeaufschlag herausrechnen</strong>
+          <span class="rechnung">K = 100.000 ÷ 1,05</span>
+          <span class="ergebnis">95.238,10 € (4.761,90 € gehen als Aufschlag ab)</span>
+        </li>
+        <li>
+          <strong>Anteile</strong>
+          <span class="rechnung">n = 95.238,10 ÷ 120,00</span>
+          <span class="ergebnis">793,6508 Anteile</span>
+        </li>
+        <li>
+          <strong>Bruttoausschüttung</strong>
+          <span class="rechnung">D = 793,6508 × 0,50 × 12</span>
+          <span class="ergebnis">4.761,90 € p. a. = 396,83 € pro Monat</span>
+        </li>
+        <li>
+          <strong>Teilfreistellung und Freistellungsauftrag</strong>
+          <span class="rechnung">4.761,90 × 0,70 = 3.333,33 → − 1.000,00</span>
+          <span class="ergebnis">Bemessungsgrundlage 2.333,33 €</span>
+        </li>
+        <li>
+          <strong>Steuer</strong>
+          <span class="rechnung">St = 2.333,33 × 27,9951 %</span>
+          <span class="ergebnis">653,22 € p. a.</span>
+        </li>
+        <li>
+          <strong>Nettoeinkommen</strong>
+          <span class="rechnung">N = 4.761,90 − 653,22 = 4.108,69 ÷ 12</span>
+          <span class="ergebnis">342,39 € pro Monat</span>
+        </li>
+      </ol>
+
+      <p>
+        Die effektive Steuerquote liegt bei nur <strong>13,72 %</strong> statt der nominalen
+        27,9951 % – Teilfreistellung und Freistellungsauftrag zusammen halbieren die Belastung
+        also mehr als.
+      </p>
+
+      <h3>Beispiel 3 – Betriebsvermögen: 500 € netto pro Monat</h3>
+
+      <p>
+        Fonds: Auslands-Immobilienfonds mit 4,00 % Ausschüttungsrendite, Ausgabeaufschlag 5 %.
+        Betriebsvermögen mit 42 % persönlichem Steuersatz plus Soli (<code>s = 44,31 %</code>),
+        Teilfreistellung 80 %, kein Sparer-Pauschbetrag.
+      </p>
+
+      <div class="formel">D = 6.000 ÷ (1 − 0,20 × 0,4431) = 6.000 ÷ 0,91138 = 6.583,42 € p. a.
+K = 6.583,42 ÷ 0,04                             = 164.585,57 €
+A = 164.585,57 × 1,05                           = 172.814,85 €</div>
+
+      <p>
+        Trotz eines nominalen Steuersatzes von 44,31 % kostet die Steuer hier nur
+        <strong>9,7 %</strong> zusätzliches Kapital gegenüber den 157.500 € ohne
+        Steuerbetrachtung – die 80 % Teilfreistellung dominieren den hohen Satz deutlich. Das ist
+        der Effekt, den die Tabelle in Abschnitt 3.3 in der letzten Spalte zeigt.
+      </p>
+
+      <h2 id="grenzen">9. Grenzen des Modells</h2>
+
+      <p>
+        Was der Rechner bewusst <em>nicht</em> abbildet – jeder Punkt ist eine Vereinfachung, die
+        das Ergebnis in eine bekannte Richtung verschiebt:
+      </p>
+
+      <div class="tabelle-huelle">
+        <table>
+          <thead>
+            <tr>
+              <th>Nicht abgebildet</th>
+              <th>Wirkung auf das Ergebnis</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="white-space: normal">Vorabpauschale auf thesaurierte Erträge</td>
+              <td style="white-space: normal">Bei ausschüttenden Fonds meist gering, aber nicht immer null – der Rechner zeigt tendenziell zu wenig Steuer.</td>
+            </tr>
+            <tr>
+              <td style="white-space: normal">Laufende Kosten (TER)</td>
+              <td style="white-space: normal">Bereits im Anteilwert und in der Ausschüttung enthalten – korrekt weggelassen, aber leicht misszuverstehen.</td>
+            </tr>
+            <tr>
+              <td style="white-space: normal">Depot- und Transaktionskosten</td>
+              <td style="white-space: normal">Mindern das Nettoeinkommen zusätzlich.</td>
+            </tr>
+            <tr>
+              <td style="white-space: normal">Ausländische Quellensteuer</td>
+              <td style="white-space: normal">Kann bei internationalen Fonds anrechenbar sein; § 32d Abs. 1 EStG kennt dafür den Term <code>− 4q</code>.</td>
+            </tr>
+            <tr>
+              <td style="white-space: normal">Günstigerprüfung (§ 32d Abs. 6 EStG)</td>
+              <td style="white-space: normal">Bei niedrigem Gesamteinkommen kann der persönliche Satz günstiger sein als 25 %.</td>
+            </tr>
+            <tr>
+              <td style="white-space: normal">Sonderausgabenabzug der Kirchensteuer im Betriebsvermögen</td>
+              <td style="white-space: normal">Im Modell vernachlässigt – die ausgewiesene Steuer ist dort minimal zu hoch.</td>
+            </tr>
+            <tr>
+              <td style="white-space: normal">Teilbarkeit der Anteile</td>
+              <td style="white-space: normal">Der Rechner rechnet mit Bruchteilen; real können Mindeststückelungen gelten.</td>
+            </tr>
+            <tr>
+              <td style="white-space: normal">Wiederanlage der Ausschüttung</td>
+              <td style="white-space: normal">Bewusst nicht modelliert – das Modell beschreibt Entnahme, nicht Aufbau.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2 id="tests">10. Wie das Ganze getestet wird</h2>
+
+      <p>
+        Der Prototyp trennt Rechenkern (<code>src/core/</code>) und Oberfläche
+        (<code>src/main.ts</code>) strikt. Getestet wird ausschließlich der Kern – 78 Tests in
+        fünf Dateien:
+      </p>
+
+      <ul>
+        <li>
+          <strong>Steuersätze exakt.</strong> 26,3750 % / 27,8186 % / 27,9951 % werden auf zwölf
+          Nachkommastellen geprüft, inklusive des Nachweises, dass die Kirchensteuer-Formel
+          <em>unter</em> dem naiven Aufschlag auf 26,375 % liegt.
+        </li>
+        <li>
+          <strong>Reihenfolge Teilfreistellung → Freistellungsauftrag.</strong> Ein Fall mit
+          glatten Zahlen (4.000 € brutto → 633,00 € Steuer) fixiert sie.
+        </li>
+        <li>
+          <strong>Inversion als Kreuztest.</strong> Für alle 8 Fonds × 5 Steuerkonstellationen ×
+          2 Aufschlagkonventionen × 8 Beträge wird geprüft, dass beide Rechenrichtungen exakt
+          zueinander invers sind. Das ist der stärkste Test: Jeder Vorzeichen- oder
+          Reihenfolgefehler bricht ihn sofort.
+        </li>
+        <li>
+          <strong>Der Knick.</strong> Stetigkeit und Monotonie an der Stelle
+          <code>D = f / q</code> werden separat geprüft.
+        </li>
+        <li>
+          <strong>Pinning der Beispiele.</strong> Die drei Beispiele oben stehen mit ihren
+          Cent-Beträgen als Testfälle im Code – ändert sich das Modell, fallen sie.
+        </li>
+        <li>
+          <strong>Plausibilisierung.</strong> Der Test zur Original-Ausgabe hält fest, dass die
+          Abweichung unter einem Euro bleibt.
+        </li>
+      </ul>
+
+      <footer class="fuss">
+        <p>
+          Sämtliche im Prototyp verwendeten Fonds sind <strong>fiktiv</strong>: Namen, ISINs,
+          Anteilwerte und Ausschüttungen sind frei erfunden und dienen ausschließlich der
+          Simulation. Diese Seite erklärt ein Rechenmodell und ist weder Anlage- noch
+          Steuerberatung. Rechtsstand der modellierten Steuerregeln: Sparer-Pauschbetrag
+          1.000 €/2.000 €, Teilfreistellungen nach § 20 InvStG.
+        </p>
+        <p><a class="link-button" href="./index.html">← Zum Rechner</a></p>
+      </footer>
+    </div>
+  </body>
+</html>

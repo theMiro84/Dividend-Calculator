@@ -1,0 +1,20 @@
+{
+  "name": "dividend-calculator",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Prototyp eines Ausschuettungsrechners (Extra-Einkommen) in TypeScript",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2",
+    "vite": "^6.0.5",
+    "vitest": "^2.1.8"
+  }
+}

@@ -1,19 +1,22 @@
 /**
- * Falsifizierbare Prognosen zur offenen Frage der Abzugsreihenfolge.
+ * Prognosen zur Abzugsreihenfolge - inzwischen weitgehend bestaetigt.
  *
- * Beobachtet ist bislang GENAU EIN Datenpunkt mit Freistellungsauftrag
- * (500 EUR -> 22.594,15 EUR). Er ist arithmetisch eindeutig, sagt aber nichts
- * darueber, ob sich der Original-Rechner bei anderen Betraegen und anderen
- * Teilfreistellungsklassen genauso verhaelt.
+ * Diese Datei entstand, als nur EIN Datenpunkt mit Freistellungsauftrag
+ * vorlag (500 EUR -> 22.594,15 EUR). Sie hielt fest, was die beiden Hypothesen
+ * fuer weitere Eingaben vorhersagen.
  *
- * Diese Datei haelt fest, was die beiden Hypothesen fuer weitere Eingaben
- * vorhersagen. Kommt ein neuer Screenshot, laesst sich sofort abgleichen -
- * und die Hypothese faellt oder haertet.
+ * Zwei der Prognosen wurden anschliessend nachgemessen und trafen exakt:
  *
- * Der schaerfste Fall ist ein Freistellungsauftrag zwischen 511 und 599 EUR:
- * Dort sagt die gesetzliche Reihenfolge "gar keine Steuer" (beide ausgewiesenen
- * Betraege identisch), die beobachtete Variante dagegen einen deutlich hoeheren
- * zweiten Betrag. Ein einziger Screenshot entscheidet das.
+ *   250 EUR -> 25.189,59 EUR   (vorhergesagt: 25.189,59 EUR)
+ *   550 EUR -> 22.075,06 EUR   (vorhergesagt: 22.075,06 EUR)
+ *
+ * Der 550-EUR-Fall ist der entscheidende: Dort deckt der Freistellungsauftrag
+ * die teilfreigestellten 510 EUR vollstaendig ab. Die gesetzliche Reihenfolge
+ * sagt "gar keine Steuer" voraus, beide ausgewiesenen Betraege waeren identisch.
+ * Beobachtet wurden aber 21.555,98 / 22.075,06 EUR. Damit ist die gesetzliche
+ * Reihenfolge fuer diesen Rechner ausgeschlossen.
+ *
+ * Die uebrigen Zeilen bleiben als offene Prognosen stehen.
  */
 
 import { describe, expect, it } from 'vitest';
@@ -44,9 +47,9 @@ const anlagebetrag = (
 const prognosen: ReadonlyArray<readonly [number, number, number]> = [
   [0, 27785.03, 27785.03],
   [100, 26563.65, 26746.86],
-  [250, 24731.57, 25189.59],
-  [500, 21678.11, 22594.15], // <- der einzige bislang beobachtete Wert
-  [550, 21555.98, 22075.06],
+  [250, 24731.57, 25189.59], // <- bestaetigt
+  [500, 21678.11, 22594.15], // <- bestaetigt
+  [550, 21555.98, 22075.06], // <- bestaetigt, qualitativ entscheidend
   [600, 21555.98, 21555.98],
   [1000, 21555.98, 21555.98],
 ];

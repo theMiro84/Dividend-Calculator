@@ -525,22 +525,29 @@ s  = effektiver Steuersatz</span></div>
       <div class="kasten kasten--warnung">
         <h3>Im Original-Rechner ist der Freistellungsauftrag weniger wert</h3>
         <p>
-          Der beobachtete Wert bei 500 € Freistellungsauftrag (siehe
-          <a href="#verifikation">Abschnitt 7, Fall C</a>) lässt sich nur reproduzieren, wenn der
-          Pauschbetrag mit dem <em>teilfreigestellten</em> Satz gutgeschrieben wird:
+          Gemessen an drei Freistellungsbeträgen (250 €, 500 €, 550 €) wird der Pauschbetrag im
+          Original-Rechner mit dem <em>teilfreigestellten</em> Satz gutgeschrieben:
         </p>
-        <div class="formel">beobachtet:   Entlastung = f × (1 − tf) × s = 500 × 22,4188 % = 112,09 €
+        <div class="formel">gemessen:     Entlastung = f × (1 − tf) × s = 500 × 22,4188 % = 112,09 €
 gesetzlich:   Entlastung = f × s          = 500 × 26,3750 % = 131,88 €</div>
         <p>
-          Die Differenz beträgt exakt <code>f × tf × s</code>. Im Referenzfall sind das
+          Die Differenz beträgt exakt <code>f × tf × s</code>. Im 500-€-Fall sind das
           <strong>916 € mehr Kapital</strong> (22.594,15 € statt 21.678,11 €), also gut
           <strong>4,2 %</strong> zu Lasten des Anlegers. Ohne Freistellungsauftrag sind beide
           Varianten identisch – deshalb fällt es kaum auf.
         </p>
         <p>
-          <strong>Wichtig für die Einordnung:</strong> Die Arithmetik ist eindeutig, die
-          <em>Ursache</em> dagegen nicht. Drei Implementierungen führen auf exakt dieselben
-          Zahlen und sind von außen nicht unterscheidbar:
+          <strong>Der entscheidende Beleg ist qualitativ, nicht quantitativ.</strong> Bei 550 €
+          Freistellungsauftrag deckt der Pauschbetrag die teilfreigestellten
+          <code>600 × 0,85 = 510 €</code> vollständig ab. In der gesetzlichen Reihenfolge fiele
+          damit <em>gar keine Steuer</em> an – der Rechner müsste zweimal dieselbe Zahl anzeigen.
+          Er zeigt aber <strong>21.555,98 € / 22.075,06 €</strong>. Zwei verschiedene Zahlen
+          schließen die gesetzliche Reihenfolge aus, unabhängig von jeder Feinjustierung der
+          Parameter.
+        </p>
+        <p>
+          Was die Messung <em>nicht</em> entscheidet, ist die interne Ursache. Drei
+          Implementierungen führen auf exakt dieselben Zahlen:
         </p>
         <ol>
           <li>Freistellungsauftrag wird vor der Teilfreistellung vom Bruttoertrag abgezogen.</li>
@@ -551,12 +558,11 @@ gesetzlich:   Entlastung = f × s          = 500 × 26,3750 % = 131,88 €</div>
           <li>Der Freistellungsauftrag selbst wird teilfreigestellt, ist also nur zu 85 % nutzbar.</li>
         </ol>
         <p>
-          Beobachtbar ist nur das gemeinsame Ergebnis. Möglicherweise ist es eine Folge der im
-          PDF genannten Vereinfachung, den Freistellungsauftrag „gleichmäßig auf 12
-          Ausschüttungen“ zu verteilen. Die Abweichung geht zulasten des Anlegers, aber in die
-          <em>konservative</em> Richtung: Der Rechner verlangt mehr Kapital, nicht weniger – für
-          eine Marketing-Anzeige mit ausgewiesenen Vereinfachungen eine nachvollziehbare Wahl.
-          Der Prototyp bildet beide Varianten ab und stellt die gesetzliche voran.
+          Fairerweise: Es handelt sich um eine als solche gekennzeichnete Marketing-Anzeige, die
+          selbst auf eine Vereinfachung bei der Verteilung des Freistellungsauftrags hinweist. Die
+          Abweichung geht zwar zulasten des Anlegers, aber in die <em>konservative</em> Richtung –
+          der Rechner verlangt mehr Kapital, nicht weniger. Der Prototyp bildet beide Varianten ab
+          und stellt die gesetzliche voran.
         </p>
       </div>
 
@@ -766,7 +772,7 @@ A   = K × (1 + a)                 <span class="kommentar">Anlagebetrag inkl. Au
         </table>
       </div>
 
-      <p>Vier abgelesene Ausgaben, gegen das Modell gerechnet:</p>
+      <p>Neun abgelesene Ausgaben über zwei Fonds, gegen das Modell gerechnet:</p>
 
       <div class="tabelle-huelle">
         <table>
@@ -775,35 +781,28 @@ A   = K × (1 + a)                 <span class="kommentar">Anlagebetrag inkl. Au
               <th>Fall</th>
               <th class="zahl">Original</th>
               <th class="zahl">Modell</th>
-              <th>Abweichung</th>
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td style="white-space: normal">A · 50 €/Monat, FSA 0 €, Steuern unberücksichtigt</td>
-              <td class="zahl">21.555,98 €</td><td class="zahl">21.555,98 €</td><td>—</td>
-            </tr>
-            <tr>
-              <td style="white-space: normal">B · 50 €/Monat, FSA 0 €, Steuern berücksichtigt</td>
-              <td class="zahl">27.785,03 €</td><td class="zahl">27.785,03 €</td><td>—</td>
-            </tr>
-            <tr>
-              <td style="white-space: normal">B · Bruttoausschüttung laut PDF</td>
-              <td class="zahl">773,38 € / 64,45 €</td><td class="zahl">773,38 € / 64,45 €</td><td>—</td>
-            </tr>
-            <tr>
-              <td style="white-space: normal">C · 50 €/Monat, FSA 500 €, Steuern berücksichtigt</td>
-              <td class="zahl">22.594,15 €</td><td class="zahl">22.594,15 €</td><td>—</td>
-            </tr>
-            <tr>
-              <td style="white-space: normal">D · 20.000 € Anlage, Einkommen vor Steuern</td>
-              <td class="zahl">46,39 €</td><td class="zahl">46,39 €</td><td>—</td>
-            </tr>
+            <tr><td style="white-space: normal">SRI 30 · 50 €/Monat, FSA 0 €, ohne Steuern</td><td class="zahl">21.555,98 €</td><td class="zahl">21.555,98 €</td></tr>
+            <tr><td style="white-space: normal">SRI 30 · 50 €/Monat, FSA 0 €, mit Steuern</td><td class="zahl">27.785,03 €</td><td class="zahl">27.785,03 €</td></tr>
+            <tr><td style="white-space: normal">SRI 30 · Bruttoausschüttung laut PDF</td><td class="zahl">773,38 € / 64,45 €</td><td class="zahl">773,38 € / 64,45 €</td></tr>
+            <tr><td style="white-space: normal">SRI 30 · 50 €/Monat, FSA 250 €</td><td class="zahl">25.189,59 €</td><td class="zahl">25.189,59 €</td></tr>
+            <tr><td style="white-space: normal">SRI 30 · 50 €/Monat, FSA 500 €</td><td class="zahl">22.594,15 €</td><td class="zahl">22.594,15 €</td></tr>
+            <tr><td style="white-space: normal">SRI 30 · 50 €/Monat, FSA 550 €</td><td class="zahl">22.075,06 €</td><td class="zahl">22.075,06 €</td></tr>
+            <tr><td style="white-space: normal">SRI 30 · 20.000 € Anlage, vor Steuern</td><td class="zahl">46,39 €</td><td class="zahl">46,39 €</td></tr>
+            <tr><td style="white-space: normal">SRI 75 · 50 €/Monat, FSA 0 €, ohne Steuern</td><td class="zahl">11.457,03 €</td><td class="zahl">11.457,03 €</td></tr>
+            <tr><td style="white-space: normal">SRI 75 · 50 €/Monat, FSA 0 €, mit Steuern</td><td class="zahl">14.051,24 €</td><td class="zahl">14.051,24 €</td></tr>
           </tbody>
         </table>
       </div>
 
-      <p>Damit sind drei offene Modellfragen entschieden:</p>
+      <p>
+        Zwei davon – die Fälle mit 250 € und 550 € Freistellungsauftrag – waren zum Zeitpunkt der
+        Vorhersage noch nicht gemessen. Sie wurden nachträglich geprüft und trafen auf den Cent.
+      </p>
+
+      <p>Damit sind vier Modellfragen entschieden:</p>
 
       <ul>
         <li>
@@ -815,13 +814,20 @@ A   = K × (1 + a)                 <span class="kommentar">Anlagebetrag inkl. Au
           exakt: <code>600 ÷ (1 − 0,85 × 0,26375) = 773,38 €</code>.
         </li>
         <li>
-          <strong>Abzugsreihenfolge:</strong> Fall C ist der interessanteste. Er trifft nur, wenn
-          der Freistellungsauftrag <em>vor</em> der Teilfreistellung abgezogen wird. In der
-          gesetzlichen Reihenfolge käme 21.678,11 € heraus – 916 € weniger.
+          <strong>Abzugsreihenfolge:</strong> Die drei Fälle mit Freistellungsauftrag treffen nur,
+          wenn der Pauschbetrag mit dem teilfreigestellten Satz gutgeschrieben wird. Der
+          550-€-Fall schließt die gesetzliche Reihenfolge sogar qualitativ aus – sie sähe dort
+          gar keine Steuer vor.
+        </li>
+        <li>
+          <strong>Teilfreistellung:</strong> Der SRI 75 belegt sie ein zweites Mal, bei einem
+          anderen Satz. Mit 30 % ergibt sich 14.051,24 €, mit 15 % wären es 14.767,79 € – die
+          Einordnung als Aktienfonds (75 % Aktienquote, also ≥ 51 % Kapitalbeteiligungen) ist
+          damit bestätigt.
         </li>
       </ul>
 
-      <div class="formel">Fall C, so wie der Original-Rechner rechnet:
+      <div class="formel">Fall C (500 €), so wie der Original-Rechner rechnet:
   D = (600 − 500 × 0,85 × 0,26375) ÷ (1 − 0,85 × 0,26375) = 628,90 € p. a.
   K = 628,90 ÷ 2,8948 %                                   = 21.725,15 €
   A = 21.725,15 × 1,04                                    = 22.594,15 €   ✓
@@ -866,47 +872,61 @@ Kursbewegung: + 0,219 %</div>
           <tbody>
             <tr>
               <td style="white-space: normal">Ausschüttungsrendite = Ausschüttung je Anteil × Termine ÷ aktueller Anteilpreis</td>
-              <td style="white-space: normal">belegt durch fünf Werte über zwei Kurse hinweg</td>
+              <td style="white-space: normal">belegt: zehn Werte, zwei Fonds, zwei Kurse</td>
             </tr>
             <tr>
               <td style="white-space: normal">Ausgabeaufschlag als <code>A = K × (1 + a)</code></td>
-              <td style="white-space: normal">belegt; Alternative verfehlt um 35 €</td>
+              <td style="white-space: normal">belegt bei 4 % und bei 5 %</td>
             </tr>
             <tr>
-              <td style="white-space: normal">Umkehrung der Steuerformel, Teilfreistellung 15 %, Satz 26,375 %</td>
-              <td style="white-space: normal">belegt; Fall B fixiert <code>(1 − tf) × s = 22,41875 %</code> exakt</td>
+              <td style="white-space: normal">Umkehrung der Steuerformel</td>
+              <td style="white-space: normal">belegt bei zwei Teilfreistellungssätzen (15 % und 30 %)</td>
             </tr>
             <tr>
-              <td style="white-space: normal">Der Freistellungsauftrag wirkt nur mit 22,4188 % statt 26,375 %</td>
-              <td style="white-space: normal">arithmetisch eindeutig – aber auf Basis von <strong>einem</strong> Datenpunkt</td>
+              <td style="white-space: normal">Der Freistellungsauftrag wirkt nur mit <code>(1 − tf) × s</code> statt mit <code>s</code></td>
+              <td style="white-space: normal">belegt: drei Beträge, davon einer qualitativ entscheidend</td>
             </tr>
             <tr>
               <td style="white-space: normal">Welche der drei gleichwertigen Implementierungen dahintersteckt</td>
-              <td style="white-space: normal">offen; von außen nicht unterscheidbar</td>
+              <td style="white-space: normal">offen; von außen nicht unterscheidbar, auch das PDF schweigt dazu</td>
             </tr>
             <tr>
-              <td style="white-space: normal">Ob das für alle Fonds und alle Beträge gilt</td>
-              <td style="white-space: normal">offen; nicht geprüft</td>
+              <td style="white-space: normal">Verhalten im Betriebsvermögen</td>
+              <td style="white-space: normal">ungeprüft; keine Messung vorhanden</td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <p>
-        Zur Fairness gehört: Der Fall-C-Screenshot enthält beide Zahlen nebeneinander
-        (21.555,98 € / 22.594,15 €). Die erste fixiert den Anteilpreis im selben Render – die
-        Abweichung lässt sich also nicht mit einem zwischenzeitlichen Kurswechsel erklären. Was
-        sie nicht ausschließt, ist ein Sonderfall der Implementierung, der nur bei diesen
-        Parametern auftritt.
-      </p>
+      <div class="kasten kasten--antwort">
+        <h3>Das Ergebnis-PDF bestätigt die Ausschüttungsmechanik wörtlich</h3>
+        <p>
+          Fußnote 1 des Fondsdokuments lautet: <em>„Die Ausschüttung wird jedes Jahr Anfang Januar
+          für die folgenden 12 Monate auf 3,0 %, bzw. 4,0 % oder 6,0 % p. a. festgelegt.
+          <strong>Die Basis ist immer der letzte Anteilspreis des Vorjahres.</strong>
+          Dementsprechend kann die Ausschüttung in Euro jährlich schwanken.“</em>
+        </p>
+        <p>
+          Das ist exakt die Mechanik, die sich aus den Zahlen rückrechnen ließ – und sie stimmt
+          für beide Fonds:
+        </p>
+        <div class="formel">SRI 30:  0,25368 × 12 = 3,04416 €  =  3,0 % von 101,472 €   (Kurs jetzt 105,16 € → 2,8948 %)
+SRI 75:  0,51785 × 12 = 6,21420 €  =  6,0 % von 103,570 €   (Kurs jetzt 113,01 € → 5,4988 %)</div>
+        <p>
+          Fußnote 3 nennt zudem ausdrücklich die Möglichkeit, die ordentlichen Erträge „um eine
+          <strong>Substanzausschüttung</strong> zu ergänzen“, um die Ausschüttung zu
+          gewährleisten – genau der blinde Fleck aus <a href="#wertentwicklung">Abschnitt 6</a>,
+          hier vom Anbieter selbst benannt.
+        </p>
+      </div>
 
-      <h3>Prognosen, mit denen sich die Frage entscheiden lässt</h3>
+      <h3>Die Prognosen und ihre Überprüfung</h3>
 
       <p>
         Die beiden Varianten laufen bei kleinen und bei großen Freistellungsaufträgen zusammen und
-        klaffen dazwischen auf. Besonders scharf wird es zwischen 511 € und 599 €: Dort sagt die
-        gesetzliche Reihenfolge <em>gar keine Steuer</em> voraus, die beobachtete Variante dagegen
-        einen deutlich höheren zweiten Betrag.
+        klaffen dazwischen auf. Die Tabelle entstand als Vorhersage, bevor weitere Messungen
+        vorlagen; die mit ✓ markierten Zeilen wurden anschließend nachgemessen und trafen jeweils
+        auf den Cent.
       </p>
 
       <div class="tabelle-huelle">
@@ -922,20 +942,21 @@ Kursbewegung: + 0,219 %</div>
           <tbody>
             <tr><td class="zahl">0 €</td><td class="zahl">27.785,03 €</td><td class="zahl">27.785,03 €</td><td class="zahl">—</td></tr>
             <tr><td class="zahl">100 €</td><td class="zahl">26.563,65 €</td><td class="zahl">26.746,86 €</td><td class="zahl">183,21 €</td></tr>
-            <tr><td class="zahl">250 €</td><td class="zahl">24.731,57 €</td><td class="zahl">25.189,59 €</td><td class="zahl">458,02 €</td></tr>
+            <tr><td class="zahl">250 €</td><td class="zahl">24.731,57 €</td><td class="zahl"><strong>25.189,59 €</strong> ✓</td><td class="zahl">458,02 €</td></tr>
             <tr><td class="zahl">500 €</td><td class="zahl">21.678,11 €</td><td class="zahl"><strong>22.594,15 €</strong> ✓</td><td class="zahl">916,04 €</td></tr>
             <tr><td class="zahl">520 €</td><td class="zahl">21.555,98 €</td><td class="zahl">22.386,52 €</td><td class="zahl">830,54 €</td></tr>
-            <tr><td class="zahl">550 €</td><td class="zahl">21.555,98 €</td><td class="zahl">22.075,06 €</td><td class="zahl">519,08 €</td></tr>
+            <tr><td class="zahl">550 €</td><td class="zahl">21.555,98 €</td><td class="zahl"><strong>22.075,06 €</strong> ✓</td><td class="zahl">519,08 €</td></tr>
             <tr><td class="zahl">600 €</td><td class="zahl">21.555,98 €</td><td class="zahl">21.555,98 €</td><td class="zahl">—</td></tr>
           </tbody>
         </table>
       </div>
 
       <p>
-        Die Zeile mit ✓ ist der beobachtete Wert. Alle übrigen sind Vorhersagen; sie stehen als
-        Testfälle in <code>tests/prognosen.test.ts</code> und lassen sich mit einem einzigen
-        weiteren Screenshot prüfen. Eine gute Nullkontrolle wäre zusätzlich ein Fonds ohne
-        Teilfreistellung – dort müssen beide Varianten exakt übereinstimmen.
+        Drei der sieben Zeilen sind inzwischen gemessen, die übrigen bleiben Vorhersagen. Alle
+        stehen als Testfälle in <code>tests/prognosen.test.ts</code>. Die 550-€-Zeile ist die
+        wichtigste: Sie unterscheidet die beiden Varianten nicht nur der Höhe nach, sondern
+        danach, <em>ob überhaupt</em> Steuer anfällt – und entscheidet die Frage damit ohne
+        jede Annahme über Rundung oder Feinjustierung.
       </p>
 
       <h2 id="beispiele">8. Drei durchgerechnete Beispiele</h2>
@@ -1104,7 +1125,7 @@ A = 164.585,57 × 1,05                           = 172.814,85 €</div>
 
       <p>
         Der Prototyp trennt Rechenkern (<code>src/core/</code>) und Oberfläche
-        (<code>src/main.ts</code>) strikt. Getestet wird ausschließlich der Kern – 110 Tests in
+        (<code>src/main.ts</code>) strikt. Getestet wird ausschließlich der Kern – 116 Tests in
         sieben Dateien:
       </p>
 
@@ -1119,7 +1140,7 @@ A = 164.585,57 × 1,05                           = 172.814,85 €</div>
           glatten Zahlen (4.000 € brutto → 633,00 € Steuer) fixiert sie.
         </li>
         <li>
-          <strong>Inversion als Kreuztest.</strong> Für alle 8 Fonds × 6 Steuerkonstellationen ×
+          <strong>Inversion als Kreuztest.</strong> Für alle 9 Fonds × 6 Steuerkonstellationen ×
           2 Aufschlagkonventionen × 8 Beträge wird geprüft, dass beide Rechenrichtungen exakt
           zueinander invers sind. Das ist der stärkste Test: Jeder Vorzeichen- oder
           Reihenfolgefehler bricht ihn sofort.
@@ -1134,7 +1155,7 @@ A = 164.585,57 × 1,05                           = 172.814,85 €</div>
         </li>
         <li>
           <strong>Verifikation gegen echte Ausgaben.</strong>
-          <code>allianz-referenz.test.ts</code> pinnt alle vier abgelesenen Werte des
+          <code>allianz-referenz.test.ts</code> pinnt alle neun abgelesenen Werte des
           Original-Rechners auf den Cent – inklusive des Nachweises, dass Fall C nur in der
           vereinfachten Abzugsreihenfolge trifft, und dass die alternative
           Ausgabeaufschlag-Konvention die Referenz um mehr als 30 € verfehlt.

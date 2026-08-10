@@ -7,10 +7,16 @@
  * Ausschuettungsfrequenzen ab, damit der Rechner vollstaendig getestet werden
  * kann.
  *
- * Der Fonds `meridian-sri-30-am` traegt die Kennzahlen, die der Original-Rechner
- * auf seinem Ergebnis-PDF ausweist (Anteilpreis 105,16 EUR, 0,25368 EUR je
- * Anteil und Monat). Damit reproduziert der Prototyp dessen Ausgaben auf den
- * Cent - siehe tests/allianz-referenz.test.ts.
+ * Zwei Fonds tragen die Kennzahlen, die der Original-Rechner ausweist:
+ * `meridian-sri-30-am` (Mischfonds, 15 % Teilfreistellung) und
+ * `meridian-sri-75-am` (Aktienfonds, 30 % Teilfreistellung). Damit reproduziert
+ * der Prototyp neun abgelesene Ausgaben auf den Cent - siehe
+ * tests/allianz-referenz.test.ts.
+ *
+ * Beide zeigen dasselbe Muster: Das Ausschüttungsziel (3 % bzw. 6 % p. a.) wird
+ * Anfang Januar auf den Schlusskurs des Vorjahres bezogen und dann als fester
+ * Eurobetrag je Anteil fixiert. Die laufende Rendite auf den aktuellen
+ * Anteilpreis liegt darunter, sobald der Kurs gestiegen ist.
  */
 
 import type { Fonds } from '../core/types.js';
@@ -77,6 +83,22 @@ export const FONDS: readonly Fonds[] = [
       'Die Ausschuettung wurde zu Jahresbeginn auf 3,00 % p. a. des damaligen Anteilpreises ' +
       '(101,472 EUR) fixiert; bezogen auf den aktuellen Preis von 105,16 EUR sind das noch ' +
       '2,8948 % - genau diese Zahl geht in die Rechnung ein, nicht die 3 % aus dem Fondsnamen.',
+  },
+  {
+    id: 'meridian-sri-75-am',
+    name: 'Meridian Dynamic Multi Asset SRI 75 AM5 (EUR)',
+    isin: 'DE000FIKT009',
+    typ: 'aktienfonds',
+    anteilwert: 113.01,
+    ausschuettungJeAnteil: 0.51785,
+    frequenz: 12,
+    ausgabeaufschlagStandard: 0.05,
+    laufendeKosten: 0.0182,
+    kapitalbeteiligungsquote: 0.75,
+    beschreibung:
+      'Zweiter Referenzfonds zur Verifikation, offensives Profil mit 75 % Aktienquote und damit ' +
+      '30 % Teilfreistellung. Ausschuettungsziel 6,00 % p. a. auf den Vorjahres-Schlusskurs von ' +
+      '103,57 EUR; auf den aktuellen Anteilpreis von 113,01 EUR sind das noch 5,4988 %.',
   },
   {
     id: 'meridian-real-estate-aq',

@@ -523,26 +523,40 @@ s  = effektiver Steuersatz</span></div>
       den Rest wird der Pauschbetrag angesetzt.</p>
 
       <div class="kasten kasten--warnung">
-        <h3>Der Original-Rechner dreht diese Reihenfolge um</h3>
+        <h3>Im Original-Rechner ist der Freistellungsauftrag weniger wert</h3>
         <p>
-          Das ist kein theoretisches Detail, sondern messbar (siehe
-          <a href="#verifikation">Abschnitt 7, Fall C</a>): Bei 500 € Freistellungsauftrag trifft
-          die Ausgabe des Original-Rechners nur, wenn man
+          Der beobachtete Wert bei 500 € Freistellungsauftrag (siehe
+          <a href="#verifikation">Abschnitt 7, Fall C</a>) lässt sich nur reproduzieren, wenn der
+          Pauschbetrag mit dem <em>teilfreigestellten</em> Satz gutgeschrieben wird:
         </p>
-        <div class="formel">1. Freistellungsauftrag vom BRUTTOertrag  nachFrei = max(0; D − f)
-2. Teilfreistellung auf den Rest         BMG      = nachFrei × (1 − tf)
-3. Steuersatz                            Steuer   = BMG × s</div>
+        <div class="formel">beobachtet:   Entlastung = f × (1 − tf) × s = 500 × 22,4188 % = 112,09 €
+gesetzlich:   Entlastung = f × s          = 500 × 26,3750 % = 131,88 €</div>
         <p>
-          rechnet. Der Unterschied ist exakt <code>f × tf × s</code> an Steuer – der
-          Teilfreistellungsanteil des Pauschbetrags geht verloren. Im Referenzfall sind das
+          Die Differenz beträgt exakt <code>f × tf × s</code>. Im Referenzfall sind das
           <strong>916 € mehr Kapital</strong> (22.594,15 € statt 21.678,11 €), also gut
           <strong>4,2 %</strong> zu Lasten des Anlegers. Ohne Freistellungsauftrag sind beide
-          Wege identisch – deshalb fällt es kaum jemandem auf.
+          Varianten identisch – deshalb fällt es kaum auf.
         </p>
         <p>
-          Vermutlich ist es eine Folge der im PDF genannten Vereinfachung, den
-          Freistellungsauftrag „gleichmäßig auf 12 Ausschüttungen“ zu verteilen. Der Prototyp
-          bildet beide Reihenfolgen ab und stellt die gesetzliche voran.
+          <strong>Wichtig für die Einordnung:</strong> Die Arithmetik ist eindeutig, die
+          <em>Ursache</em> dagegen nicht. Drei Implementierungen führen auf exakt dieselben
+          Zahlen und sind von außen nicht unterscheidbar:
+        </p>
+        <ol>
+          <li>Freistellungsauftrag wird vor der Teilfreistellung vom Bruttoertrag abgezogen.</li>
+          <li>
+            Der Fonds wird intern mit einem „effektiven Steuersatz“ von 22,4188 % geführt, und der
+            Pauschbetrag mindert diese bereits reduzierte Bemessungsgrundlage.
+          </li>
+          <li>Der Freistellungsauftrag selbst wird teilfreigestellt, ist also nur zu 85 % nutzbar.</li>
+        </ol>
+        <p>
+          Beobachtbar ist nur das gemeinsame Ergebnis. Möglicherweise ist es eine Folge der im
+          PDF genannten Vereinfachung, den Freistellungsauftrag „gleichmäßig auf 12
+          Ausschüttungen“ zu verteilen. Die Abweichung geht zulasten des Anlegers, aber in die
+          <em>konservative</em> Richtung: Der Rechner verlangt mehr Kapital, nicht weniger – für
+          eine Marketing-Anzeige mit ausgewiesenen Vereinfachungen eine nachvollziehbare Wahl.
+          Der Prototyp bildet beide Varianten ab und stellt die gesetzliche voran.
         </p>
       </div>
 
@@ -822,6 +836,108 @@ Fall C, gesetzliche Reihenfolge (§ 20 Abs. 9 EStG):
         Cent fest.
       </p>
 
+      <h3>Ein fünfter Wert, aus einer früheren Sitzung</h3>
+
+      <p>
+        Ein Screenshot vom selben Abend, 34 Minuten früher, zeigt für denselben Fonds und
+        dieselben Einstellungen (50 €/Monat, kein Freistellungsauftrag, Steuern unberücksichtigt)
+        <strong>21.508,83 €</strong> statt 21.555,98 €. Da alle übrigen Größen feststehen, bleibt
+        genau ein Freiheitsgrad – der Anteilpreis:
+      </p>
+
+      <div class="formel">p = 21.508,83 ÷ 1,04 × (0,25368 × 12) ÷ 600 = 104,9300 €   (statt 105,16 €)
+Kursbewegung: + 0,219 %</div>
+
+      <p>
+        Das ist keine Abweichung, sondern eine dritte unabhängige Bestätigung: Der Rechner zieht
+        offensichtlich den jeweils aktuellen Anteilpreis, und zwischen den beiden Aufrufen wurde
+        der Kurs aktualisiert (vermutlich vom vorherigen Handelstag auf den 10.08.). Es ist
+        zugleich die praktische Illustration von <a href="#wertentwicklung">Abschnitt 6</a>: Ein
+        um 0,2 % höherer Kurs verlangt exakt 0,2 % mehr Kapital für dasselbe Einkommen.
+      </p>
+
+      <h3>Was damit belegt ist – und was nicht</h3>
+
+      <div class="tabelle-huelle">
+        <table>
+          <thead>
+            <tr><th>Aussage</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="white-space: normal">Ausschüttungsrendite = Ausschüttung je Anteil × Termine ÷ aktueller Anteilpreis</td>
+              <td style="white-space: normal">belegt durch fünf Werte über zwei Kurse hinweg</td>
+            </tr>
+            <tr>
+              <td style="white-space: normal">Ausgabeaufschlag als <code>A = K × (1 + a)</code></td>
+              <td style="white-space: normal">belegt; Alternative verfehlt um 35 €</td>
+            </tr>
+            <tr>
+              <td style="white-space: normal">Umkehrung der Steuerformel, Teilfreistellung 15 %, Satz 26,375 %</td>
+              <td style="white-space: normal">belegt; Fall B fixiert <code>(1 − tf) × s = 22,41875 %</code> exakt</td>
+            </tr>
+            <tr>
+              <td style="white-space: normal">Der Freistellungsauftrag wirkt nur mit 22,4188 % statt 26,375 %</td>
+              <td style="white-space: normal">arithmetisch eindeutig – aber auf Basis von <strong>einem</strong> Datenpunkt</td>
+            </tr>
+            <tr>
+              <td style="white-space: normal">Welche der drei gleichwertigen Implementierungen dahintersteckt</td>
+              <td style="white-space: normal">offen; von außen nicht unterscheidbar</td>
+            </tr>
+            <tr>
+              <td style="white-space: normal">Ob das für alle Fonds und alle Beträge gilt</td>
+              <td style="white-space: normal">offen; nicht geprüft</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>
+        Zur Fairness gehört: Der Fall-C-Screenshot enthält beide Zahlen nebeneinander
+        (21.555,98 € / 22.594,15 €). Die erste fixiert den Anteilpreis im selben Render – die
+        Abweichung lässt sich also nicht mit einem zwischenzeitlichen Kurswechsel erklären. Was
+        sie nicht ausschließt, ist ein Sonderfall der Implementierung, der nur bei diesen
+        Parametern auftritt.
+      </p>
+
+      <h3>Prognosen, mit denen sich die Frage entscheiden lässt</h3>
+
+      <p>
+        Die beiden Varianten laufen bei kleinen und bei großen Freistellungsaufträgen zusammen und
+        klaffen dazwischen auf. Besonders scharf wird es zwischen 511 € und 599 €: Dort sagt die
+        gesetzliche Reihenfolge <em>gar keine Steuer</em> voraus, die beobachtete Variante dagegen
+        einen deutlich höheren zweiten Betrag.
+      </p>
+
+      <div class="tabelle-huelle">
+        <table>
+          <thead>
+            <tr>
+              <th>Freistellungsauftrag</th>
+              <th class="zahl">gesetzlich</th>
+              <th class="zahl">beobachtete Variante</th>
+              <th class="zahl">Differenz</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td class="zahl">0 €</td><td class="zahl">27.785,03 €</td><td class="zahl">27.785,03 €</td><td class="zahl">—</td></tr>
+            <tr><td class="zahl">100 €</td><td class="zahl">26.563,65 €</td><td class="zahl">26.746,86 €</td><td class="zahl">183,21 €</td></tr>
+            <tr><td class="zahl">250 €</td><td class="zahl">24.731,57 €</td><td class="zahl">25.189,59 €</td><td class="zahl">458,02 €</td></tr>
+            <tr><td class="zahl">500 €</td><td class="zahl">21.678,11 €</td><td class="zahl"><strong>22.594,15 €</strong> ✓</td><td class="zahl">916,04 €</td></tr>
+            <tr><td class="zahl">520 €</td><td class="zahl">21.555,98 €</td><td class="zahl">22.386,52 €</td><td class="zahl">830,54 €</td></tr>
+            <tr><td class="zahl">550 €</td><td class="zahl">21.555,98 €</td><td class="zahl">22.075,06 €</td><td class="zahl">519,08 €</td></tr>
+            <tr><td class="zahl">600 €</td><td class="zahl">21.555,98 €</td><td class="zahl">21.555,98 €</td><td class="zahl">—</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>
+        Die Zeile mit ✓ ist der beobachtete Wert. Alle übrigen sind Vorhersagen; sie stehen als
+        Testfälle in <code>tests/prognosen.test.ts</code> und lassen sich mit einem einzigen
+        weiteren Screenshot prüfen. Eine gute Nullkontrolle wäre zusätzlich ein Fonds ohne
+        Teilfreistellung – dort müssen beide Varianten exakt übereinstimmen.
+      </p>
+
       <h2 id="beispiele">8. Drei durchgerechnete Beispiele</h2>
 
       <h3>Beispiel 1 – Richtung „Anlagebetrag“: 250 € netto pro Monat</h3>
@@ -988,8 +1104,8 @@ A = 164.585,57 × 1,05                           = 172.814,85 €</div>
 
       <p>
         Der Prototyp trennt Rechenkern (<code>src/core/</code>) und Oberfläche
-        (<code>src/main.ts</code>) strikt. Getestet wird ausschließlich der Kern – 96 Tests in
-        sechs Dateien:
+        (<code>src/main.ts</code>) strikt. Getestet wird ausschließlich der Kern – 110 Tests in
+        sieben Dateien:
       </p>
 
       <ul>
@@ -1022,6 +1138,12 @@ A = 164.585,57 × 1,05                           = 172.814,85 €</div>
           Original-Rechners auf den Cent – inklusive des Nachweises, dass Fall C nur in der
           vereinfachten Abzugsreihenfolge trifft, und dass die alternative
           Ausgabeaufschlag-Konvention die Referenz um mehr als 30 € verfehlt.
+        </li>
+        <li>
+          <strong>Falsifizierbare Prognosen.</strong> <code>prognosen.test.ts</code> hält fest,
+          was die beiden Varianten der Freistellungsreihenfolge für weitere Beträge vorhersagen –
+          inklusive der Nullkontrolle, dass sie sich ohne Teilfreistellung nicht unterscheiden
+          dürfen.
         </li>
       </ul>
 

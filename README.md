@@ -31,7 +31,7 @@ Steuerkonstellationen geprüft.
 ```bash
 npm install
 npm run dev        # Entwicklungsserver (Rechner unter /index.html, Theorie unter /theorie.html)
-npm test           # 96 Unit-Tests des Rechenkerns
+npm test           # 110 Unit-Tests des Rechenkerns
 npm run typecheck  # TypeScript im strict-Modus
 npm run build      # Produktions-Build nach dist/
 ```
@@ -50,7 +50,8 @@ src/
   examples.ts         vier Beispielszenarien (UI-Buttons, Tests, Theorieseite)
   main.ts             UI-Logik (rechnet selbst nichts)
   styles.css
-tests/                tax · calculator · roundtrip · allianz-referenz · examples · format
+tests/                tax · calculator · roundtrip · allianz-referenz · prognosen ·
+                      examples · format
 ```
 
 Rechenkern und Oberfläche sind strikt getrennt: `src/main.ts` liest nur Formularwerte,
@@ -99,13 +100,24 @@ abgelesene Ausgaben **auf den Cent** – siehe unten.
 | 50 €/Monat, FSA 500 €, mit Steuern | 22.594,15 € | 22.594,15 € |
 | 20.000 € Anlage → Einkommen vor Steuern | 46,39 €/Monat | 46,39 €/Monat |
 
-Das entscheidet drei Modellfragen: Der Ausgabeaufschlag folgt `A = K × (1 + a)`, die Steuerumkehr
-stimmt exakt – und der Freistellungsauftrag wird im Original **vor** der Teilfreistellung
-abgezogen, nicht danach. Letzteres kostet im Referenzfall 916 € zusätzliches Kapital (4,2 %).
+Ein fünfter Wert aus einer früheren Sitzung (21.508,83 €, gleicher Fonds, gleiche Einstellungen)
+passt ebenfalls exakt – bei einem Anteilpreis von 104,93 € statt 105,16 €, also nach einem
+Kurs-Update von 0,219 %.
+
+Das entscheidet zwei Modellfragen sicher: Der Ausgabeaufschlag folgt `A = K × (1 + a)`, und die
+Umkehrung der Steuerformel stimmt exakt (Fall B fixiert `(1 − tf) × s = 22,41875 %`).
+
+Der FSA-Fall zeigt zusätzlich, dass der Freistellungsauftrag im Original nur mit dem
+**teilfreigestellten** Satz von 22,4188 % wirkt statt mit 26,375 % – im Referenzfall 916 €
+zusätzliches Kapital (4,2 %). Das ist arithmetisch eindeutig, beruht aber auf **einem**
+Datenpunkt; welche von drei numerisch gleichwertigen Implementierungen dahintersteckt, ist von
+außen nicht unterscheidbar. `tests/prognosen.test.ts` hält falsifizierbare Vorhersagen für
+weitere Freistellungsbeträge fest — ein Freistellungsauftrag zwischen 511 € und 599 € entscheidet
+die Frage mit einem einzigen weiteren Screenshot.
 
 ## Tests
 
-96 Tests in sechs Dateien:
+110 Tests in sieben Dateien:
 
 - `tax.test.ts` – Steuersätze auf zwölf Nachkommastellen (26,3750 % / 27,8186 % / 27,9951 %),
   Teilfreistellungstabelle, Reihenfolge der Abzüge, Umkehrformel inklusive Knick und Monotonie
@@ -114,6 +126,7 @@ abgezogen, nicht danach. Letzteres kostet im Referenzfall 916 € zusätzliches 
 - `roundtrip.test.ts` – Kreuztest über 8 Fonds × 6 Steuerkonstellationen × 2 Konventionen ×
   8 Beträge: beide Richtungen müssen exakt invers sein
 - `allianz-referenz.test.ts` – pinnt die vier oben genannten Referenzwerte auf den Cent
+- `prognosen.test.ts` – falsifizierbare Vorhersagen zur offenen Frage der Abzugsreihenfolge
 - `examples.test.ts` – Pinning der vier Beispielszenarien auf den Cent
 - `format.test.ts` – deutsche Zahleneingabe und -ausgabe, inklusive Rundlauf
 

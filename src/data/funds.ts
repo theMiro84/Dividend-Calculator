@@ -7,9 +7,10 @@
  * Ausschuettungsfrequenzen ab, damit der Rechner vollstaendig getestet werden
  * kann.
  *
- * Der Fonds `meridian-sri-30-am` ist so parametrisiert, dass er die aus dem
- * Screenshot des Original-Rechners abgeleitete Ausschuettungsrendite von
- * rund 2,90 % p. a. trifft (siehe theorie.html, Abschnitt "Plausibilisierung").
+ * Der Fonds `meridian-sri-30-am` traegt die Kennzahlen, die der Original-Rechner
+ * auf seinem Ergebnis-PDF ausweist (Anteilpreis 105,16 EUR, 0,25368 EUR je
+ * Anteil und Monat). Damit reproduziert der Prototyp dessen Ausgaben auf den
+ * Cent - siehe tests/allianz-referenz.test.ts.
  */
 
 import type { Fonds } from '../core/types.js';
@@ -62,18 +63,20 @@ export const FONDS: readonly Fonds[] = [
   },
   {
     id: 'meridian-sri-30-am',
-    name: 'Meridian Dynamic Multi Asset SRI 30 AM (EUR)',
+    name: 'Meridian Dynamic Multi Asset SRI 30 AM5 (EUR)',
     isin: 'DE000FIKT004',
     typ: 'mischfonds',
-    anteilwert: 103.41,
-    ausschuettungJeAnteil: 0.25,
+    anteilwert: 105.16,
+    ausschuettungJeAnteil: 0.25368,
     frequenz: 12,
     ausgabeaufschlagStandard: 0.04,
     laufendeKosten: 0.0142,
     kapitalbeteiligungsquote: 0.3,
     beschreibung:
-      'Nachhaltigkeitsorientierter Mischfonds, nachempfunden dem Fonds aus dem Screenshot des ' +
-      'Original-Rechners: 2,90 % Ausschuettungsrendite p. a. Dient der Plausibilisierung des Modells.',
+      'Referenzfonds zur Verifikation: traegt die Kennzahlen, die der Original-Rechner ausweist. ' +
+      'Die Ausschuettung wurde zu Jahresbeginn auf 3,00 % p. a. des damaligen Anteilpreises ' +
+      '(101,472 EUR) fixiert; bezogen auf den aktuellen Preis von 105,16 EUR sind das noch ' +
+      '2,8948 % - genau diese Zahl geht in die Rechnung ein, nicht die 3 % aus dem Fondsnamen.',
   },
   {
     id: 'meridian-real-estate-aq',

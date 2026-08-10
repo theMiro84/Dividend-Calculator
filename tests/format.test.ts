@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   formatAnteile,
   formatEuro,
+  formatEuroGenau,
   formatProzent,
   formatZahl,
   parseDeutscheZahl,
@@ -74,5 +75,18 @@ describe('parseDeutscheZahl', () => {
       const text = formatZahl(wert, 2);
       expect(parseDeutscheZahl(text)).toBeCloseTo(wert, 8);
     }
+  });
+});
+
+describe('formatEuroGenau', () => {
+  it('zeigt so viele Nachkommastellen wie noetig (zwei bis fuenf)', () => {
+    expect(norm(formatEuroGenau(0.25368))).toBe('0,25368 €');
+    expect(norm(formatEuroGenau(0.25))).toBe('0,25 €');
+    expect(norm(formatEuroGenau(2.8))).toBe('2,80 €');
+  });
+
+  it('rundet die entscheidende Information nicht weg', () => {
+    expect(norm(formatEuro(0.25368))).toBe('0,25 €');
+    expect(norm(formatEuroGenau(0.25368))).not.toBe(norm(formatEuro(0.25368)));
   });
 });

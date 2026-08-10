@@ -105,6 +105,19 @@
           </div>
 
           <div class="feld" data-vermoegensart="privat">
+            <label class="feld__label" for="fsaModus">Reihenfolge der Freistellungen</label>
+            <select id="fsaModus" name="fsaModus">
+              <option value="nach_teilfreistellung" selected>
+                Teilfreistellung zuerst (§ 20 Abs. 9 EStG)
+              </option>
+              <option value="vor_teilfreistellung">
+                Freistellungsauftrag zuerst (Original-Rechner)
+              </option>
+            </select>
+            <p class="hinweis" id="fsaModus-hinweis"></p>
+          </div>
+
+          <div class="feld" data-vermoegensart="privat">
             <label class="feld__label" for="kirchensteuer">Kirchensteuer</label>
             <select id="kirchensteuer" name="kirchensteuer">
               <option value="0" selected>keine</option>

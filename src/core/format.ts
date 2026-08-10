@@ -17,6 +17,21 @@ export function formatEuro(wert: number): string {
   return euroFormat.format(wert);
 }
 
+/**
+ * Euro-Betrag mit so vielen Nachkommastellen, wie der Wert tatsaechlich hat
+ * (zwei bis fuenf). Fuer Groessen wie die Ausschuettung je Anteil, bei denen
+ * kaufmaennisches Runden auf Cent die entscheidende Information zerstoert
+ * (0,25368 EUR ist nicht 0,25 EUR).
+ */
+export function formatEuroGenau(wert: number): string {
+  return new Intl.NumberFormat('de-DE', {
+    style: 'currency',
+    currency: 'EUR',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 5,
+  }).format(wert);
+}
+
 export function formatZahl(wert: number, nachkommastellen = 2): string {
   return zahlFormat(nachkommastellen).format(wert);
 }

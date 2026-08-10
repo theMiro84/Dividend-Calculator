@@ -328,7 +328,7 @@
           <li><a href="#richtung-1">Richtung 1: Anlagebetrag → Einkommen</a></li>
           <li><a href="#richtung-2">Richtung 2: Einkommen → Anlagebetrag</a></li>
           <li><a href="#wertentwicklung">Warum die Wertentwicklung nicht vorkommt</a></li>
-          <li><a href="#plausibilisierung">Plausibilisierung an einer echten Ausgabe</a></li>
+          <li><a href="#verifikation">Verifikation am Original-Rechner</a></li>
           <li><a href="#beispiele">Drei durchgerechnete Beispiele</a></li>
           <li><a href="#grenzen">Grenzen des Modells</a></li>
           <li><a href="#tests">Wie das Ganze getestet wird</a></li>
@@ -353,10 +353,17 @@
         <h3>Frage 2: Geht die Wertentwicklung des Fonds ein?</h3>
         <p>
           <strong>Nein.</strong> In der Formel taucht kein einziger Performance-Parameter auf.
-          Relevant ist ausschließlich die <strong>Ausschüttungsquote</strong> (die „3, 4 oder
-          5 %“) beziehungsweise – exakter – die Ausschüttung je Anteil im Verhältnis zum
-          Anteilwert. Der Rechner unterstellt implizit einen konstanten Kurs und eine konstante
-          Ausschüttung. Details und die Konsequenzen dieser Annahme stehen in
+          Relevant ist ausschließlich die Ausschüttung je Anteil im Verhältnis zum Anteilwert.
+          Der Rechner unterstellt implizit einen konstanten Kurs und eine konstante Ausschüttung.
+        </p>
+        <p>
+          Zwei Präzisierungen, die die echten Daten des Original-Rechners sichtbar machen:
+          Erstens ist die „3 %“ aus der Fondsauswahl <strong>nicht</strong> die Zahl, mit der
+          gerechnet wird – tatsächlich sind es dort 2,89 % (siehe
+          <a href="#bausteine">Abschnitt 3.1</a>). Zweitens wirkt der Kurs sehr wohl an einer
+          Stelle: als <em>Nenner</em> der Ausschüttungsrendite am Kaufzeitpunkt. Steigt der Kurs,
+          ohne dass die Ausschüttung je Anteil mitzieht, sinkt das Einkommen pro angelegtem Euro.
+          Was das Weglassen der Wertentwicklung sonst noch verdeckt, steht in
           <a href="#wertentwicklung">Abschnitt 6</a>.
         </p>
       </div>
@@ -406,6 +413,27 @@ p = Anteilwert / Rücknahmepreis (EUR)</span></div>
         Ausschüttung weist der Rechner ein <strong>rechnerisch geglättetes</strong>
         Monatseinkommen aus, das tatsächlich einmal im Jahr in einer Summe fließt.
       </p>
+
+      <div class="kasten kasten--warnung">
+        <h3>Die „3 %“ im Fondsnamen sind nicht die Zahl, mit der gerechnet wird</h3>
+        <p>
+          Das Ergebnis-PDF des Original-Rechners weist beides nebeneinander aus:
+          <code>3 % p. a. / 0,25368 Euro je Anteil in 2026</code> bei einem Anteilpreis von
+          <code>105,16 €</code>. Rechnet man nach, ergibt das
+          <code>0,25368 × 12 ÷ 105,16 = <strong>2,8948 %</strong></code> – nicht 3 %.
+        </p>
+        <p>
+          Die Auflösung: <code>0,25368 × 12 = 3,04416 €</code> sind exakt 3,00 % von
+          <strong>101,472 €</strong>. Die Ausschüttung wurde also zu Jahresbeginn als 3 % des
+          <em>damaligen</em> Anteilpreises festgelegt und für das Jahr als fester Eurobetrag je
+          Anteil fixiert. Seither ist der Kurs gestiegen – und damit die laufende Rendite auf
+          <strong>2,89 %</strong> gefallen. Wer heute kauft, bekommt 2,89 %, nicht 3 %.
+        </p>
+        <p>
+          Das ist der erste Ort, an dem der Kurs doch eine Rolle spielt: nicht als Wertentwicklung
+          in der Formel, sondern als <em>Nenner</em> der Ausschüttungsrendite am Kaufzeitpunkt.
+        </p>
+      </div>
 
       <h3>3.2 Der Ausgabeaufschlag</h3>
 
@@ -490,9 +518,33 @@ s  = effektiver Steuersatz</span></div>
       </div>
 
       <p><strong>Freistellungsauftrag.</strong> Der Sparer-Pauschbetrag (seit 2023: 1.000 €
-      einzeln, 2.000 € bei Zusammenveranlagung) wird <em>nach</em> der Teilfreistellung
-      abgezogen. Diese Reihenfolge ist der häufigste Fehler in selbstgebauten Rechnern: Zieht man
-      zuerst den Pauschbetrag ab, kommt systematisch zu wenig Steuer heraus.</p>
+      einzeln, 2.000 € bei Zusammenveranlagung) wird nach § 20 Abs. 9 EStG <em>nach</em> der
+      Teilfreistellung abgezogen – die Teilfreistellung mindert die Kapitalerträge, und erst auf
+      den Rest wird der Pauschbetrag angesetzt.</p>
+
+      <div class="kasten kasten--warnung">
+        <h3>Der Original-Rechner dreht diese Reihenfolge um</h3>
+        <p>
+          Das ist kein theoretisches Detail, sondern messbar (siehe
+          <a href="#verifikation">Abschnitt 7, Fall C</a>): Bei 500 € Freistellungsauftrag trifft
+          die Ausgabe des Original-Rechners nur, wenn man
+        </p>
+        <div class="formel">1. Freistellungsauftrag vom BRUTTOertrag  nachFrei = max(0; D − f)
+2. Teilfreistellung auf den Rest         BMG      = nachFrei × (1 − tf)
+3. Steuersatz                            Steuer   = BMG × s</div>
+        <p>
+          rechnet. Der Unterschied ist exakt <code>f × tf × s</code> an Steuer – der
+          Teilfreistellungsanteil des Pauschbetrags geht verloren. Im Referenzfall sind das
+          <strong>916 € mehr Kapital</strong> (22.594,15 € statt 21.678,11 €), also gut
+          <strong>4,2 %</strong> zu Lasten des Anlegers. Ohne Freistellungsauftrag sind beide
+          Wege identisch – deshalb fällt es kaum jemandem auf.
+        </p>
+        <p>
+          Vermutlich ist es eine Folge der im PDF genannten Vereinfachung, den
+          Freistellungsauftrag „gleichmäßig auf 12 Ausschüttungen“ zu verteilen. Der Prototyp
+          bildet beide Reihenfolgen ab und stellt die gesetzliche voran.
+        </p>
+      </div>
 
       <p><strong>Steuersatz.</strong> Im Privatvermögen gilt die Abgeltungsteuer von 25 % plus
       5,5 % Solidaritätszuschlag. Wer kirchensteuerpflichtig ist, zahlt zusätzlich 8 % oder 9 % –
@@ -608,6 +660,15 @@ A   = K × (1 + a)                 <span class="kommentar">Anlagebetrag inkl. Au
         dann zweimal dieselbe Zahl. Der Prototyp blendet diese Grenze aktiv ein.
       </p>
 
+      <p>
+        In der vereinfachten Reihenfolge des Original-Rechners liegt der Knick bei
+        <code>D = f</code> statt <code>D = f ÷ q</code>, also schon bei 1.000 € statt 1.176,47 €.
+        Oberhalb ist die Steigung in beiden Fällen dieselbe, nur der Achsenabschnitt
+        unterscheidet sich – deshalb hat die Umkehrformel in beiden Fällen die Gestalt
+        <code>D = (N − Achsenabschnitt) ÷ (1 − q × s)</code>, mit <code>f × s</code>
+        beziehungsweise <code>f × q × s</code> als Achsenabschnitt.
+      </p>
+
       <h2 id="wertentwicklung">6. Warum die Wertentwicklung nicht vorkommt</h2>
 
       <p>
@@ -671,33 +732,94 @@ A   = K × (1 + a)                 <span class="kommentar">Anlagebetrag inkl. Au
         Bezahlt wird das mit den vier Punkten oben.
       </p>
 
-      <h2 id="plausibilisierung">7. Plausibilisierung an einer echten Ausgabe</h2>
+      <h2 id="verifikation">7. Verifikation am Original-Rechner</h2>
 
       <p>
-        Ein Screenshot des Original-Rechners zeigt: gewünschtes Extra-Einkommen 50,00 €,
-        Ausgabeaufschlag 4,00 %, Steuern unberücksichtigt → <strong>Anlagebetrag 21.508,83 €</strong>.
-        Damit lässt sich das Modell rückwärts prüfen.
+        Das Ergebnis-PDF des Original-Rechners nennt alle Eingangsgrößen, mit denen sich das
+        Modell nicht nur plausibilisieren, sondern <strong>exakt nachrechnen</strong> lässt:
       </p>
 
-      <div class="formel">D = 50 × 12                     = 600,00 € p. a.
-K = 21.508,83 ÷ 1,04            = 20.681,57 €
-r = 600,00 ÷ 20.681,57          = 2,9011 % p. a.</div>
+      <div class="tabelle-huelle">
+        <table>
+          <tbody>
+            <tr><td>Anteilpreis (10.08.2026)</td><td class="zahl">105,16 €</td></tr>
+            <tr><td>Ausschüttung je Anteil und Monat</td><td class="zahl">0,25368 €</td></tr>
+            <tr><td>Ausschüttungsrendite <code>r = 0,25368 × 12 ÷ 105,16</code></td><td class="zahl">2,8948 % p. a.</td></tr>
+            <tr><td>Teilfreistellung (Mischfonds)</td><td class="zahl">15 %</td></tr>
+            <tr><td>Steuersatz (25 % + 5,5 % Soli, keine Kirchensteuer)</td><td class="zahl">26,3750 %</td></tr>
+            <tr><td>Ausgabeaufschlag</td><td class="zahl">4,00 %</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>Vier abgelesene Ausgaben, gegen das Modell gerechnet:</p>
+
+      <div class="tabelle-huelle">
+        <table>
+          <thead>
+            <tr>
+              <th>Fall</th>
+              <th class="zahl">Original</th>
+              <th class="zahl">Modell</th>
+              <th>Abweichung</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="white-space: normal">A · 50 €/Monat, FSA 0 €, Steuern unberücksichtigt</td>
+              <td class="zahl">21.555,98 €</td><td class="zahl">21.555,98 €</td><td>—</td>
+            </tr>
+            <tr>
+              <td style="white-space: normal">B · 50 €/Monat, FSA 0 €, Steuern berücksichtigt</td>
+              <td class="zahl">27.785,03 €</td><td class="zahl">27.785,03 €</td><td>—</td>
+            </tr>
+            <tr>
+              <td style="white-space: normal">B · Bruttoausschüttung laut PDF</td>
+              <td class="zahl">773,38 € / 64,45 €</td><td class="zahl">773,38 € / 64,45 €</td><td>—</td>
+            </tr>
+            <tr>
+              <td style="white-space: normal">C · 50 €/Monat, FSA 500 €, Steuern berücksichtigt</td>
+              <td class="zahl">22.594,15 €</td><td class="zahl">22.594,15 €</td><td>—</td>
+            </tr>
+            <tr>
+              <td style="white-space: normal">D · 20.000 € Anlage, Einkommen vor Steuern</td>
+              <td class="zahl">46,39 €</td><td class="zahl">46,39 €</td><td>—</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>Damit sind drei offene Modellfragen entschieden:</p>
+
+      <ul>
+        <li>
+          <strong>Ausgabeaufschlag:</strong> Fall A trifft nur mit <code>A = K × (1 + a)</code>.
+          Die andere Konvention läge bei 21.590,52 € – rund 35 € daneben.
+        </li>
+        <li>
+          <strong>Steuerumkehr:</strong> Fall B bestätigt die Formel und die Teilfreistellung
+          exakt: <code>600 ÷ (1 − 0,85 × 0,26375) = 773,38 €</code>.
+        </li>
+        <li>
+          <strong>Abzugsreihenfolge:</strong> Fall C ist der interessanteste. Er trifft nur, wenn
+          der Freistellungsauftrag <em>vor</em> der Teilfreistellung abgezogen wird. In der
+          gesetzlichen Reihenfolge käme 21.678,11 € heraus – 916 € weniger.
+        </li>
+      </ul>
+
+      <div class="formel">Fall C, so wie der Original-Rechner rechnet:
+  D = (600 − 500 × 0,85 × 0,26375) ÷ (1 − 0,85 × 0,26375) = 628,90 € p. a.
+  K = 628,90 ÷ 2,8948 %                                   = 21.725,15 €
+  A = 21.725,15 × 1,04                                    = 22.594,15 €   ✓
+
+Fall C, gesetzliche Reihenfolge (§ 20 Abs. 9 EStG):
+  D = (600 − 500 × 0,26375) ÷ (1 − 0,85 × 0,26375)        = 603,40 € p. a.
+  A                                                       = 21.678,11 €</div>
 
       <p>
-        Es kommt also <strong>keine glatte Prozentzahl</strong> heraus, sondern 2,90 %. Das ist
-        das entscheidende Indiz: Der Rechner arbeitet nicht mit einer gerundeten Quote aus einem
-        Dropdown, sondern mit den <strong>tatsächlichen Fondsdaten</strong> – Ausschüttung je
-        Anteil geteilt durch den aktuellen Anteilwert. Ein Anteilwert von 103,41 € bei 0,25 €
-        monatlicher Ausschüttung ergibt genau diese 2,9011 %.
-      </p>
-
-      <p>
-        Der Screenshot allein kann übrigens nicht entscheiden, welche der beiden
-        Ausgabeaufschlag-Konventionen verwendet wurde: Mit <code>K = A ÷ 1,04</code> passt ein
-        Anteilwert von 103,41 €, mit <code>K = A × 0,96</code> einer von 103,24 € – beide sind
-        plausible Kurse. Der Prototyp bildet deshalb beide Wege ab. Der fiktive Fonds
-        <em>Meridian Dynamic Multi Asset SRI 30 AM</em> reproduziert die Zahl auf unter einen Euro
-        genau (21.509,28 € statt 21.508,83 €); ein automatischer Test hält das fest.
+        Der fiktive Fonds <em>Meridian Dynamic Multi Asset SRI 30 AM5</em> im Prototyp trägt genau
+        diese Kennzahlen; <code>tests/allianz-referenz.test.ts</code> hält alle vier Werte auf den
+        Cent fest.
       </p>
 
       <h2 id="beispiele">8. Drei durchgerechnete Beispiele</h2>
@@ -866,8 +988,8 @@ A = 164.585,57 × 1,05                           = 172.814,85 €</div>
 
       <p>
         Der Prototyp trennt Rechenkern (<code>src/core/</code>) und Oberfläche
-        (<code>src/main.ts</code>) strikt. Getestet wird ausschließlich der Kern – 78 Tests in
-        fünf Dateien:
+        (<code>src/main.ts</code>) strikt. Getestet wird ausschließlich der Kern – 96 Tests in
+        sechs Dateien:
       </p>
 
       <ul>
@@ -881,7 +1003,7 @@ A = 164.585,57 × 1,05                           = 172.814,85 €</div>
           glatten Zahlen (4.000 € brutto → 633,00 € Steuer) fixiert sie.
         </li>
         <li>
-          <strong>Inversion als Kreuztest.</strong> Für alle 8 Fonds × 5 Steuerkonstellationen ×
+          <strong>Inversion als Kreuztest.</strong> Für alle 8 Fonds × 6 Steuerkonstellationen ×
           2 Aufschlagkonventionen × 8 Beträge wird geprüft, dass beide Rechenrichtungen exakt
           zueinander invers sind. Das ist der stärkste Test: Jeder Vorzeichen- oder
           Reihenfolgefehler bricht ihn sofort.
@@ -895,8 +1017,11 @@ A = 164.585,57 × 1,05                           = 172.814,85 €</div>
           Cent-Beträgen als Testfälle im Code – ändert sich das Modell, fallen sie.
         </li>
         <li>
-          <strong>Plausibilisierung.</strong> Der Test zur Original-Ausgabe hält fest, dass die
-          Abweichung unter einem Euro bleibt.
+          <strong>Verifikation gegen echte Ausgaben.</strong>
+          <code>allianz-referenz.test.ts</code> pinnt alle vier abgelesenen Werte des
+          Original-Rechners auf den Cent – inklusive des Nachweises, dass Fall C nur in der
+          vereinfachten Abzugsreihenfolge trifft, und dass die alternative
+          Ausgabeaufschlag-Konvention die Referenz um mehr als 30 € verfehlt.
         </li>
       </ul>
 

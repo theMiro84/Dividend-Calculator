@@ -13,9 +13,22 @@ import {
   berechneEinkommen,
 } from './core/calculator.js';
 import type { Eingaben } from './core/calculator.js';
-import { formatAnteile, formatEuro, formatProzent, formatZahl, parseDeutscheZahl } from './core/format.js';
+import {
+  formatAnteile,
+  formatEuro,
+  formatEuroGenau,
+  formatProzent,
+  formatZahl,
+  parseDeutscheZahl,
+} from './core/format.js';
 import { FONDSTYP_LABEL, effektiverSteuersatz, teilfreistellungssatz } from './core/tax.js';
-import type { AufschlagModus, Ergebnis, Fonds, SteuerEinstellungen, Vermoegensart } from './core/types.js';
+import type {
+  AufschlagModus,
+  Ergebnis,
+  Fonds,
+  SteuerEinstellungen,
+  Vermoegensart,
+} from './core/types.js';
 import { FONDS, findeFonds } from './data/funds.js';
 import { BEISPIELE, eingabenAusBeispiel } from './examples.js';
 import type { Beispiel, Richtung } from './examples.js';
@@ -44,6 +57,7 @@ const form = el<HTMLFormElement>('rechner-form');
 const zielInput = el<HTMLInputElement>('ziel');
 const anlageInput = el<HTMLInputElement>('anlagebetrag');
 const fsaInput = el<HTMLInputElement>('freistellungsauftrag');
+const fsaModusSelect = el<HTMLSelectElement>('fsaModus');
 const kirchensteuerSelect = el<HTMLSelectElement>('kirchensteuer');
 const steuersatzInput = el<HTMLInputElement>('steuersatz');
 const fondsSelect = el<HTMLSelectElement>('fonds');
@@ -54,6 +68,7 @@ const ergebnisKnoten = el<HTMLElement>('ergebnis');
 const rechenwegKnoten = el<HTMLElement>('rechenweg');
 const fondsInfo = el<HTMLElement>('fonds-info');
 const richtungHinweis = el<HTMLElement>('richtung-hinweis');
+const fsaModusHinweis = el<HTMLElement>('fsaModus-hinweis');
 const beispieleKnoten = el<HTMLElement>('beispiele');
 
 /* ------------------------------------------------------- Formular auslesen */
@@ -92,6 +107,10 @@ function leseFormular(): Formularzustand {
     steuernBeruecksichtigen: steuernCheckbox.checked,
     steuer: {
       vermoegensart,
+      freistellungsauftragModus:
+        fsaModusSelect.value === 'vor_teilfreistellung'
+          ? 'vor_teilfreistellung'
+          : 'nach_teilfreistellung',
       freistellungsauftrag: parseDeutscheZahl(fsaInput.value) ?? 0,
       kirchensteuersatz: Number(kirchensteuerSelect.value) || 0,
       soli: true,
@@ -115,13 +134,18 @@ function aktualisiereSichtbarkeit(zustand: Formularzustand): void {
       ? 'Sie geben Ihr Wunsch-Einkommen vor und erhalten den dafür nötigen Anlagebetrag.'
       : 'Sie geben Ihren Anlagebetrag vor und erhalten das daraus mögliche Monatseinkommen.';
 
+  fsaModusHinweis.textContent =
+    zustand.steuer.freistellungsauftragModus === 'nach_teilfreistellung'
+      ? 'Gesetzliche Reihenfolge: Der Sparer-Pauschbetrag wird vom bereits teilfreigestellten Ertrag abgezogen.'
+      : 'Vereinfachung des Original-Rechners: Der Freistellungsauftrag geht vom Bruttoertrag ab, die Teilfreistellung greift erst danach. Das erhöht die Steuer.';
+
   const fonds = zustand.fonds;
   const frequenzText = { 1: 'jährlich', 2: 'halbjährlich', 4: 'quartalsweise', 12: 'monatlich' }[
     fonds.frequenz
   ];
   fondsInfo.innerHTML =
     `<strong>${formatProzent(ausschuettungsrendite(fonds))} Ausschüttungsrendite p. a.</strong> · ` +
-    `${escape(frequenzText)} ${formatEuro(fonds.ausschuettungJeAnteil)} je Anteil · ` +
+    `${escape(frequenzText)} ${formatEuroGenau(fonds.ausschuettungJeAnteil)} je Anteil · ` +
     `Anteilwert ${formatEuro(fonds.anteilwert)} · ISIN ${escape(fonds.isin)}<br />` +
     `${escape(FONDSTYP_LABEL[fonds.typ])} → Teilfreistellung ` +
     `${formatProzent(teilfreistellungssatz(fonds.typ, zustand.vermoegensart), 0)} im ` +
@@ -137,6 +161,23 @@ function zeile(bezeichnung: string, wert: string, klasse = ''): string {
 
 function trenner(titel: string): string {
   return `<div class="zeile zeile--trenner"><dt>${escape(titel)}</dt><dd></dd></div>`;
+}
+
+/** Die beiden Abzugszeilen in der Reihenfolge, in der sie tatsaechlich greifen. */
+function steuerzeilen(e: Ergebnis): string {
+  const teilfreistellung = zeile(
+    `Teilfreistellung ${formatProzent(e.teilfreistellungssatz, 0)}`,
+    `− ${formatEuro(e.teilfreistellungsbetrag)}`,
+  );
+  const freistellungsauftrag = zeile(
+    'genutzter Freistellungsauftrag',
+    `− ${formatEuro(e.freistellungsauftragGenutzt)}`,
+  );
+  const zwischenstand = zeile('Zwischenstand', formatEuro(e.betragNachErstemAbzug));
+
+  return e.freistellungsauftragModus === 'nach_teilfreistellung'
+    ? `${teilfreistellung}${zwischenstand}${freistellungsauftrag}`
+    : `${freistellungsauftrag}${zwischenstand}${teilfreistellung}`;
 }
 
 function detailtabelle(e: Ergebnis, zustand: Formularzustand): string {
@@ -155,12 +196,7 @@ function detailtabelle(e: Ergebnis, zustand: Formularzustand): string {
     ${zeile('Bruttoausschüttung pro Monat', formatEuro(e.ausschuettungBruttoMonat), 'zeile--stark')}
 
     ${trenner(`Steuern (${artText})`)}
-    ${zeile(
-      `Teilfreistellung ${formatProzent(e.teilfreistellungssatz, 0)}`,
-      `− ${formatEuro(e.teilfreistellungsbetrag)}`,
-    )}
-    ${zeile('steuerpflichtiger Anteil', formatEuro(e.steuerpflichtigVorFreistellung))}
-    ${zeile('genutzter Freistellungsauftrag', `− ${formatEuro(e.freistellungsauftragGenutzt)}`)}
+    ${steuerzeilen(e)}
     ${zeile('Bemessungsgrundlage', formatEuro(e.bemessungsgrundlage))}
     ${zeile('Steuersatz', formatProzent(e.steuersatz, 4))}
     ${zeile('Steuer p. a.', `− ${formatEuro(e.steuerJahr)}`)}
@@ -207,28 +243,48 @@ function rechenwegEinkommen(e: Ergebnis, zustand: Formularzustand): string {
     ),
     schritt(
       'Bruttoausschüttung pro Jahr',
-      `D = n × Ausschüttung je Anteil × Termine = ${formatAnteile(e.anteile)} × ${formatEuro(
+      `D = n × Ausschüttung je Anteil × Termine = ${formatAnteile(e.anteile)} × ${formatEuroGenau(
         e.fonds.ausschuettungJeAnteil,
       )} × ${e.fonds.frequenz}`,
       `D = ${formatEuro(e.ausschuettungBruttoJahr)} p. a. = ${formatEuro(
         e.ausschuettungBruttoMonat,
       )} pro Monat`,
     ),
-    schritt(
-      'Teilfreistellung abziehen',
-      `D × (1 − tf) = ${formatEuro(e.ausschuettungBruttoJahr)} × (1 − ${formatProzent(
-        e.teilfreistellungssatz,
-        0,
-      )})`,
-      `steuerpflichtig: ${formatEuro(e.steuerpflichtigVorFreistellung)}`,
-    ),
-    schritt(
-      'Freistellungsauftrag anrechnen',
-      `BMG = max(0; ${formatEuro(e.steuerpflichtigVorFreistellung)} − ${formatEuro(
-        e.freistellungsauftragGenutzt,
-      )})`,
-      `BMG = ${formatEuro(e.bemessungsgrundlage)}`,
-    ),
+    ...(e.freistellungsauftragModus === 'nach_teilfreistellung'
+      ? [
+          schritt(
+            'Teilfreistellung abziehen',
+            `D × (1 − tf) = ${formatEuro(e.ausschuettungBruttoJahr)} × (1 − ${formatProzent(
+              e.teilfreistellungssatz,
+              0,
+            )})`,
+            `steuerpflichtig: ${formatEuro(e.betragNachErstemAbzug)}`,
+          ),
+          schritt(
+            'Freistellungsauftrag anrechnen',
+            `BMG = max(0; ${formatEuro(e.betragNachErstemAbzug)} − ${formatEuro(
+              e.freistellungsauftragGenutzt,
+            )})`,
+            `BMG = ${formatEuro(e.bemessungsgrundlage)}`,
+          ),
+        ]
+      : [
+          schritt(
+            'Freistellungsauftrag vom Bruttoertrag abziehen',
+            `D − f = ${formatEuro(e.ausschuettungBruttoJahr)} − ${formatEuro(
+              e.freistellungsauftragGenutzt,
+            )}`,
+            `verbleiben: ${formatEuro(e.betragNachErstemAbzug)}`,
+          ),
+          schritt(
+            'Teilfreistellung auf den Rest',
+            `BMG = ${formatEuro(e.betragNachErstemAbzug)} × (1 − ${formatProzent(
+              e.teilfreistellungssatz,
+              0,
+            )})`,
+            `BMG = ${formatEuro(e.bemessungsgrundlage)}`,
+          ),
+        ]),
     schritt(
       'Steuer berechnen',
       `St = BMG × s = ${formatEuro(e.bemessungsgrundlage)} × ${formatProzent(e.steuersatz, 4)}`,
@@ -271,9 +327,16 @@ function rechenwegAnlagebetrag(e: Ergebnis, zustand: Formularzustand, mitSteuer:
       e.steuerJahr > 0
         ? schritt(
             'Nettoziel auf Brutto hochrechnen',
-            `D = (N − f × t) ÷ (1 − q × t) = (${formatEuro(ziel)} − ${formatEuro(
-              fsa,
-            )} × ${formatProzent(t, 4)}) ÷ (1 − ${formatZahl(q, 2)} × ${formatProzent(t, 4)})`,
+            e.freistellungsauftragModus === 'nach_teilfreistellung'
+              ? `D = (N − f × t) ÷ (1 − q × t) = (${formatEuro(ziel)} − ${formatEuro(
+                  fsa,
+                )} × ${formatProzent(t, 4)}) ÷ (1 − ${formatZahl(q, 2)} × ${formatProzent(t, 4)})`
+              : `D = (N − f × q × t) ÷ (1 − q × t) = (${formatEuro(ziel)} − ${formatEuro(
+                  fsa,
+                )} × ${formatZahl(q, 2)} × ${formatProzent(t, 4)}) ÷ (1 − ${formatZahl(
+                  q,
+                  2,
+                )} × ${formatProzent(t, 4)})`,
             `D = ${formatEuro(e.ausschuettungBruttoJahr)} brutto p. a.`,
           )
         : schritt(
@@ -445,6 +508,7 @@ function ladeBeispiel(beispiel: Beispiel): void {
   }
 
   fsaInput.value = formatZahl(beispiel.steuer.freistellungsauftrag, 2);
+  fsaModusSelect.value = beispiel.steuer.freistellungsauftragModus;
   kirchensteuerSelect.value = String(beispiel.steuer.kirchensteuersatz);
   steuersatzInput.value = formatZahl(beispiel.steuer.persoenlicherSteuersatz * 100, 2);
   fondsSelect.value = eingaben.fonds.id;

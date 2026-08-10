@@ -10,16 +10,7 @@ import {
 } from '../src/core/calculator.js';
 import type { Eingaben } from '../src/core/calculator.js';
 import { findeFonds } from '../src/data/funds.js';
-import type { SteuerEinstellungen } from '../src/core/types.js';
-
-const privat = (u: Partial<SteuerEinstellungen> = {}): SteuerEinstellungen => ({
-  vermoegensart: 'privat',
-  freistellungsauftrag: 0,
-  kirchensteuersatz: 0,
-  soli: true,
-  persoenlicherSteuersatz: 0.42,
-  ...u,
-});
+import { betrieb, privat } from './helpers.js';
 
 const eingaben = (u: Partial<Eingaben> = {}): Eingaben => ({
   fonds: findeFonds('meridian-multi-asset-30-am'),
@@ -89,7 +80,7 @@ describe('berechneEinkommen (Richtung: Anlagebetrag -> Einkommen)', () => {
     expect(e.ausschuettungBruttoMonat).toBeCloseTo(240.384615, 6);
 
     expect(e.teilfreistellungsbetrag).toBeCloseTo(432.692308, 6);
-    expect(e.steuerpflichtigVorFreistellung).toBeCloseTo(2451.923077, 6);
+    expect(e.betragNachErstemAbzug).toBeCloseTo(2451.923077, 6);
     expect(e.freistellungsauftragGenutzt).toBeCloseTo(1000, 10);
     expect(e.bemessungsgrundlage).toBeCloseTo(1451.923077, 6);
     expect(e.steuerJahr).toBeCloseTo(382.944712, 6);
@@ -143,13 +134,7 @@ describe('berechneEinkommen (Richtung: Anlagebetrag -> Einkommen)', () => {
     const bv = berechneEinkommen(
       200000,
       eingaben({
-        steuer: {
-          vermoegensart: 'betrieb',
-          freistellungsauftrag: 0,
-          kirchensteuersatz: 0,
-          soli: true,
-          persoenlicherSteuersatz: 0.42,
-        },
+        steuer: betrieb(),
       }),
     );
 

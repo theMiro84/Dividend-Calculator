@@ -10,63 +10,29 @@ import { berechneAnlagebetrag, berechneEinkommen } from '../src/core/calculator.
 import type { Eingaben } from '../src/core/calculator.js';
 import { FONDS } from '../src/data/funds.js';
 import type { AufschlagModus, SteuerEinstellungen } from '../src/core/types.js';
+import { betrieb, privat } from './helpers.js';
 
 const steuerVarianten: ReadonlyArray<readonly [string, SteuerEinstellungen]> = [
-  [
-    'privat, kein FSA',
-    {
-      vermoegensart: 'privat',
-      freistellungsauftrag: 0,
-      kirchensteuersatz: 0,
-      soli: true,
-      persoenlicherSteuersatz: 0.42,
-    },
-  ],
-  [
-    'privat, FSA 1.000 €',
-    {
-      vermoegensart: 'privat',
-      freistellungsauftrag: 1000,
-      kirchensteuersatz: 0,
-      soli: true,
-      persoenlicherSteuersatz: 0.42,
-    },
-  ],
+  ['privat, kein FSA', privat()],
+  ['privat, FSA 1.000 €', privat({ freistellungsauftrag: 1000 })],
   [
     'privat, FSA 2.000 €, Kirchensteuer 9 %',
-    {
-      vermoegensart: 'privat',
-      freistellungsauftrag: 2000,
-      kirchensteuersatz: 0.09,
-      soli: true,
-      persoenlicherSteuersatz: 0.42,
-    },
+    privat({ freistellungsauftrag: 2000, kirchensteuersatz: 0.09 }),
   ],
   [
-    'betrieb, 42 %',
-    {
-      vermoegensart: 'betrieb',
-      freistellungsauftrag: 0,
-      kirchensteuersatz: 0,
-      soli: true,
-      persoenlicherSteuersatz: 0.42,
-    },
+    'privat, FSA 1.000 €, Freistellung vor Teilfreistellung',
+    privat({ freistellungsauftrag: 1000, freistellungsauftragModus: 'vor_teilfreistellung' }),
   ],
+  ['betrieb, 42 %', betrieb()],
   [
     'betrieb, 30 % mit Kirchensteuer 8 %',
-    {
-      vermoegensart: 'betrieb',
-      freistellungsauftrag: 0,
-      kirchensteuersatz: 0.08,
-      soli: true,
-      persoenlicherSteuersatz: 0.3,
-    },
+    betrieb({ persoenlicherSteuersatz: 0.3, kirchensteuersatz: 0.08 }),
   ],
 ];
 
 const modi: readonly AufschlagModus[] = ['auf_anteilwert', 'im_anlagebetrag'];
 const zielBetraege = [0, 25, 50, 100, 250, 500, 1000, 2500];
-const anlageBetraege = [0, 1000, 10000, 21508.83, 100000, 250000, 1_000_000];
+const anlageBetraege = [0, 1000, 10000, 21555.98, 100000, 250000, 1_000_000];
 
 describe('Inversion der beiden Rechenrichtungen', () => {
   it.each(steuerVarianten)('Ziel -> Anlagebetrag -> Ziel (%s)', (_name, steuer) => {
@@ -125,32 +91,5 @@ describe('Inversion der beiden Rechenrichtungen', () => {
         expect(e.investiertesKapital).toBeLessThanOrEqual(e.anlagebetragBrutto + 1e-9);
       }
     }
-  });
-});
-
-describe('Plausibilisierung am Original-Rechner', () => {
-  it('reproduziert die Groessenordnung aus dem Screenshot (50 €/Monat, 4 % AA)', () => {
-    // Screenshot: 50,00 € gewuenschtes Extra-Einkommen, 4 % Ausgabeaufschlag,
-    // Steuern unberuecksichtigt -> Anlagebetrag 21.508,83 €.
-    // Unser fiktiver Fonds mit 2,90 % Ausschuettungsrendite trifft das auf < 1 € genau.
-    const fonds = FONDS.find((f) => f.id === 'meridian-sri-30-am');
-    expect(fonds).toBeDefined();
-
-    const ergebnis = berechneAnlagebetrag(50, {
-      fonds: fonds!,
-      ausgabeaufschlag: 0.04,
-      aufschlagModus: 'auf_anteilwert',
-      steuer: {
-        vermoegensart: 'privat',
-        freistellungsauftrag: 0,
-        kirchensteuersatz: 0,
-        soli: true,
-        persoenlicherSteuersatz: 0.42,
-      },
-    });
-
-    expect(ergebnis.ohneSteuerbetrachtung.investiertesKapital).toBeCloseTo(20682, 6);
-    expect(ergebnis.ohneSteuerbetrachtung.anlagebetragBrutto).toBeCloseTo(21509.28, 2);
-    expect(Math.abs(ergebnis.ohneSteuerbetrachtung.anlagebetragBrutto - 21508.83)).toBeLessThan(1);
   });
 });

@@ -42,6 +42,7 @@ export const BEISPIELE: readonly Beispiel[] = [
     steuernBeruecksichtigen: true,
     steuer: {
       vermoegensart: 'privat',
+      freistellungsauftragModus: 'nach_teilfreistellung',
       freistellungsauftrag: 1000,
       kirchensteuersatz: 0,
       soli: true,
@@ -61,6 +62,7 @@ export const BEISPIELE: readonly Beispiel[] = [
     steuernBeruecksichtigen: true,
     steuer: {
       vermoegensart: 'privat',
+      freistellungsauftragModus: 'nach_teilfreistellung',
       freistellungsauftrag: 1000,
       kirchensteuersatz: 0.09,
       soli: true,
@@ -80,7 +82,28 @@ export const BEISPIELE: readonly Beispiel[] = [
     steuernBeruecksichtigen: true,
     steuer: {
       vermoegensart: 'betrieb',
+      freistellungsauftragModus: 'nach_teilfreistellung',
       freistellungsauftrag: 0,
+      kirchensteuersatz: 0,
+      soli: true,
+      persoenlicherSteuersatz: 0.42,
+    },
+  },
+  {
+    id: 'beispiel-4',
+    titel: 'Beispiel 4: Referenzfall des Original-Rechners',
+    frage:
+      'Reproduktion einer echten Ausgabe: 50 € netto/Monat, 500 € Freistellungsauftrag – zeigt den Effekt der Abzugsreihenfolge.',
+    richtung: 'anlagebetrag',
+    betrag: 50,
+    fondsId: 'meridian-sri-30-am',
+    ausgabeaufschlag: 0.04,
+    aufschlagModus: 'auf_anteilwert',
+    steuernBeruecksichtigen: true,
+    steuer: {
+      vermoegensart: 'privat',
+      freistellungsauftragModus: 'vor_teilfreistellung',
+      freistellungsauftrag: 500,
       kirchensteuersatz: 0,
       soli: true,
       persoenlicherSteuersatz: 0.42,

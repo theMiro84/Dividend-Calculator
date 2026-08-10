@@ -9,7 +9,12 @@
  *   4. mal Steuersatz                              -> Steuer
  */
 
-import type { FondsTyp, SteuerEinstellungen, Vermoegensart } from './types.js';
+import type {
+  FondsTyp,
+  FreistellungsauftragModus,
+  SteuerEinstellungen,
+  Vermoegensart,
+} from './types.js';
 
 /** Abgeltungsteuersatz auf Kapitalertraege im Privatvermoegen. */
 export const ABGELTUNGSTEUERSATZ = 0.25;
@@ -99,8 +104,10 @@ export interface Steueraufteilung {
   readonly brutto: number;
   readonly teilfreistellungssatz: number;
   readonly teilfreistellungsbetrag: number;
-  readonly steuerpflichtigVorFreistellung: number;
+  /** Zwischenstand nach dem ersten der beiden Abzuege (je nach Reihenfolge). */
+  readonly betragNachErstemAbzug: number;
   readonly freistellungsauftragGenutzt: number;
+  readonly freistellungsauftragModus: FreistellungsauftragModus;
   readonly bemessungsgrundlage: number;
   readonly steuersatz: number;
   readonly steuer: number;
@@ -110,10 +117,16 @@ export interface Steueraufteilung {
 /**
  * Vorwaertsrechnung: Von der Bruttoausschuettung zur Nettoausschuettung.
  *
+ * Gesetzliche Reihenfolge (`nach_teilfreistellung`):
  *   steuerpflichtig = brutto * (1 - tf)
  *   bemessung       = max(0, steuerpflichtig - fsa)
- *   steuer          = bemessung * s
- *   netto           = brutto - steuer
+ *
+ * Vereinfachte Reihenfolge (`vor_teilfreistellung`, so rechnet der Allianz-Rechner):
+ *   nachFreistellung = max(0, brutto - fsa)
+ *   bemessung        = nachFreistellung * (1 - tf)
+ *
+ * In beiden Faellen gilt anschliessend `steuer = bemessung * s`. Ohne
+ * Freistellungsauftrag sind beide Wege identisch.
  */
 export function besteuereAusschuettung(
   brutto: number,
@@ -123,19 +136,34 @@ export function besteuereAusschuettung(
   const tf = teilfreistellungssatz(typ, einstellungen.vermoegensart);
   const s = effektiverSteuersatz(einstellungen);
   const fsa = nutzbarerFreistellungsauftrag(einstellungen);
+  const modus = einstellungen.freistellungsauftragModus;
 
-  const teilfreistellungsbetrag = brutto * tf;
-  const steuerpflichtigVorFreistellung = brutto - teilfreistellungsbetrag;
-  const freistellungsauftragGenutzt = Math.min(fsa, steuerpflichtigVorFreistellung);
-  const bemessungsgrundlage = steuerpflichtigVorFreistellung - freistellungsauftragGenutzt;
+  let teilfreistellungsbetrag: number;
+  let betragNachErstemAbzug: number;
+  let freistellungsauftragGenutzt: number;
+  let bemessungsgrundlage: number;
+
+  if (modus === 'nach_teilfreistellung') {
+    teilfreistellungsbetrag = brutto * tf;
+    betragNachErstemAbzug = brutto - teilfreistellungsbetrag;
+    freistellungsauftragGenutzt = Math.min(fsa, betragNachErstemAbzug);
+    bemessungsgrundlage = betragNachErstemAbzug - freistellungsauftragGenutzt;
+  } else {
+    freistellungsauftragGenutzt = Math.min(fsa, brutto);
+    betragNachErstemAbzug = brutto - freistellungsauftragGenutzt;
+    teilfreistellungsbetrag = betragNachErstemAbzug * tf;
+    bemessungsgrundlage = betragNachErstemAbzug - teilfreistellungsbetrag;
+  }
+
   const steuer = bemessungsgrundlage * s;
 
   return {
     brutto,
     teilfreistellungssatz: tf,
     teilfreistellungsbetrag,
-    steuerpflichtigVorFreistellung,
+    betragNachErstemAbzug,
     freistellungsauftragGenutzt,
+    freistellungsauftragModus: modus,
     bemessungsgrundlage,
     steuersatz: s,
     steuer,
@@ -144,18 +172,37 @@ export function besteuereAusschuettung(
 }
 
 /**
+ * Bruttoausschuettung, ab der ueberhaupt Steuer anfaellt - der Knick der
+ * Netto-Kurve. Der Freistellungsauftrag wird genau hier vollstaendig
+ * ausgeschoepft.
+ */
+export function knickBrutto(typ: FondsTyp, einstellungen: SteuerEinstellungen): number {
+  const q = 1 - teilfreistellungssatz(typ, einstellungen.vermoegensart);
+  const f = nutzbarerFreistellungsauftrag(einstellungen);
+  if (q <= 0) return Number.POSITIVE_INFINITY;
+  return einstellungen.freistellungsauftragModus === 'nach_teilfreistellung' ? f / q : f;
+}
+
+/**
  * Rueckwaertsrechnung: Welche Bruttoausschuettung liefert eine gewuenschte
  * Nettoausschuettung?
  *
- * Mit t = Steuersatz, f = Freistellungsauftrag und q = 1 - Teilfreistellung gilt
+ * Mit t = Steuersatz, f = Freistellungsauftrag und q = 1 - Teilfreistellung ist
+ * `netto(brutto)` in beiden Reihenfolgen stueckweise linear mit identischer
+ * Steigung oberhalb des Knicks - nur Knickstelle und Achsenabschnitt
+ * unterscheiden sich:
  *
- *        netto = brutto - max(0, brutto * q - f) * t
+ *   nach_teilfreistellung:  netto = brutto - max(0, brutto*q - f) * t
+ *                           Knick bei brutto = f / q
+ *                           oberhalb: netto = brutto * (1 - q*t) + f*t
  *
- * Das ist stueckweise linear mit dem Knick bei brutto = f / q. Unterhalb des
- * Knicks faellt keine Steuer an (netto = brutto), oberhalb gilt
+ *   vor_teilfreistellung:   netto = brutto - max(0, brutto - f) * q * t
+ *                           Knick bei brutto = f
+ *                           oberhalb: netto = brutto * (1 - q*t) + f*q*t
  *
- *        netto = brutto * (1 - q * t) + f * t
- *   <=>  brutto = (netto - f * t) / (1 - q * t)
+ * Aufloesen nach brutto ergibt jeweils
+ *
+ *        brutto = (netto - achsenabschnitt) / (1 - q * t)
  *
  * Die Funktion ist streng monoton steigend, die Umkehrung also eindeutig.
  */
@@ -174,9 +221,9 @@ export function bruttoAusNetto(
   // Voll steuerfrei: keine Teilfreistellungsluecke oder kein Steuersatz.
   if (q <= 0 || t <= 0) return netto;
 
-  // Unterhalb des Knicks deckt der Freistellungsauftrag alles ab.
-  const knickBrutto = f / q;
-  if (netto <= knickBrutto) return netto;
+  // Unterhalb des Knicks deckt der Freistellungsauftrag alles ab (netto = brutto).
+  const knick = knickBrutto(typ, einstellungen);
+  if (netto <= knick) return netto;
 
   const nenner = 1 - q * t;
   // Nenner <= 0 hiesse: jeder zusaetzliche Euro brutto senkt das Netto.
@@ -185,5 +232,8 @@ export function bruttoAusNetto(
     throw new Error('Unplausible Steuerparameter: Nettoausschuettung nicht erreichbar.');
   }
 
-  return (netto - f * t) / nenner;
+  const achsenabschnitt =
+    einstellungen.freistellungsauftragModus === 'nach_teilfreistellung' ? f * t : f * q * t;
+
+  return (netto - achsenabschnitt) / nenner;
 }

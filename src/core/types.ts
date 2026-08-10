@@ -61,9 +61,24 @@ export interface Fonds {
   readonly beschreibung: string;
 }
 
+/**
+ * Reihenfolge, in der Teilfreistellung und Freistellungsauftrag abgezogen werden.
+ *
+ * - `nach_teilfreistellung`: erst Teilfreistellung, dann Sparer-Pauschbetrag.
+ *   Das entspricht § 20 Abs. 9 EStG i. V. m. § 20 InvStG - die Teilfreistellung
+ *   mindert die Kapitalertraege, und erst darauf wird der Pauschbetrag angesetzt.
+ * - `vor_teilfreistellung`: erst Freistellungsauftrag vom Bruttoertrag, dann
+ *   Teilfreistellung auf den Rest. Vereinfachung, die der Allianz-Rechner
+ *   verwendet (nachgewiesen in tests/allianz-referenz.test.ts). Sie fuehrt zu
+ *   einer hoeheren Steuer und damit zu einem hoeheren noetigen Anlagebetrag.
+ */
+export type FreistellungsauftragModus = 'nach_teilfreistellung' | 'vor_teilfreistellung';
+
 /** Steuerliche Rahmenbedingungen des Anlegers. */
 export interface SteuerEinstellungen {
   readonly vermoegensart: Vermoegensart;
+  /** Reihenfolge der beiden Freistellungen. Siehe `FreistellungsauftragModus`. */
+  readonly freistellungsauftragModus: FreistellungsauftragModus;
   /**
    * Nur `privat`: noch freier Betrag des Freistellungsauftrags in EUR
    * (Sparer-Pauschbetrag 1.000 EUR / 2.000 EUR bei Zusammenveranlagung).
@@ -100,8 +115,10 @@ export interface Ergebnis {
 
   readonly teilfreistellungssatz: number;
   readonly teilfreistellungsbetrag: number;
-  readonly steuerpflichtigVorFreistellung: number;
+  /** Zwischenstand nach dem ersten der beiden Abzuege (je nach Reihenfolge). */
+  readonly betragNachErstemAbzug: number;
   readonly freistellungsauftragGenutzt: number;
+  readonly freistellungsauftragModus: FreistellungsauftragModus;
   readonly bemessungsgrundlage: number;
   readonly steuersatz: number;
   readonly steuerJahr: number;

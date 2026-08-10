@@ -8,28 +8,7 @@ import {
   teilfreistellungssatz,
 } from '../src/core/tax.js';
 import type { SteuerEinstellungen } from '../src/core/types.js';
-
-const privat = (
-  ueberschreibungen: Partial<SteuerEinstellungen> = {},
-): SteuerEinstellungen => ({
-  vermoegensart: 'privat',
-  freistellungsauftrag: 0,
-  kirchensteuersatz: 0,
-  soli: true,
-  persoenlicherSteuersatz: 0.42,
-  ...ueberschreibungen,
-});
-
-const betrieb = (
-  ueberschreibungen: Partial<SteuerEinstellungen> = {},
-): SteuerEinstellungen => ({
-  vermoegensart: 'betrieb',
-  freistellungsauftrag: 0,
-  kirchensteuersatz: 0,
-  soli: true,
-  persoenlicherSteuersatz: 0.42,
-  ...ueberschreibungen,
-});
+import { betrieb, privat } from './helpers.js';
 
 describe('effektiverSteuersatz', () => {
   it('ergibt im Privatvermoegen ohne Kirchensteuer exakt 26,375 %', () => {
@@ -84,7 +63,7 @@ describe('besteuereAusschuettung', () => {
     const a = besteuereAusschuettung(4000, 'mischfonds', privat({ freistellungsauftrag: 1000 }));
 
     expect(a.teilfreistellungsbetrag).toBeCloseTo(600, 10);
-    expect(a.steuerpflichtigVorFreistellung).toBeCloseTo(3400, 10);
+    expect(a.betragNachErstemAbzug).toBeCloseTo(3400, 10);
     expect(a.freistellungsauftragGenutzt).toBeCloseTo(1000, 10);
     expect(a.bemessungsgrundlage).toBeCloseTo(2400, 10);
     expect(a.steuer).toBeCloseTo(633, 10); // 2400 * 26,375 %
@@ -94,7 +73,7 @@ describe('besteuereAusschuettung', () => {
   it('laesst die Ausschuettung steuerfrei, solange der Freistellungsauftrag reicht', () => {
     const a = besteuereAusschuettung(1000, 'mischfonds', privat({ freistellungsauftrag: 1000 }));
 
-    expect(a.steuerpflichtigVorFreistellung).toBeCloseTo(850, 10);
+    expect(a.betragNachErstemAbzug).toBeCloseTo(850, 10);
     expect(a.freistellungsauftragGenutzt).toBeCloseTo(850, 10);
     expect(a.bemessungsgrundlage).toBe(0);
     expect(a.steuer).toBe(0);
@@ -116,6 +95,43 @@ describe('besteuereAusschuettung', () => {
     expect(immo.steuer).toBeCloseTo(renten.steuer * 0.2, 10);
   });
 
+  it('zieht im Modus "vor_teilfreistellung" zuerst den Freistellungsauftrag ab', () => {
+    const a = besteuereAusschuettung(
+      4000,
+      'mischfonds',
+      privat({ freistellungsauftrag: 1000, freistellungsauftragModus: 'vor_teilfreistellung' }),
+    );
+
+    expect(a.freistellungsauftragGenutzt).toBeCloseTo(1000, 10);
+    expect(a.betragNachErstemAbzug).toBeCloseTo(3000, 10);
+    expect(a.teilfreistellungsbetrag).toBeCloseTo(450, 10);
+    expect(a.bemessungsgrundlage).toBeCloseTo(2550, 10);
+    expect(a.steuer).toBeCloseTo(672.5625, 10); // 2550 * 26,375 %
+  });
+
+  it('besteuert in der vereinfachten Reihenfolge staerker', () => {
+    const gesetzlich = besteuereAusschuettung(4000, 'mischfonds', privat({ freistellungsauftrag: 1000 }));
+    const vereinfacht = besteuereAusschuettung(
+      4000,
+      'mischfonds',
+      privat({ freistellungsauftrag: 1000, freistellungsauftragModus: 'vor_teilfreistellung' }),
+    );
+
+    expect(vereinfacht.steuer).toBeGreaterThan(gesetzlich.steuer);
+    // Der Unterschied ist genau der Teilfreistellungsanteil des Freistellungsauftrags:
+    expect(vereinfacht.steuer - gesetzlich.steuer).toBeCloseTo(1000 * 0.15 * 0.26375, 10);
+  });
+
+  it('ist ohne Freistellungsauftrag in beiden Reihenfolgen identisch', () => {
+    const a = besteuereAusschuettung(4000, 'mischfonds', privat());
+    const b = besteuereAusschuettung(
+      4000,
+      'mischfonds',
+      privat({ freistellungsauftragModus: 'vor_teilfreistellung' }),
+    );
+    expect(b.steuer).toBeCloseTo(a.steuer, 10);
+  });
+
   it('liefert bei Bruttoausschuettung 0 keine Steuer', () => {
     const a = besteuereAusschuettung(0, 'aktienfonds', privat({ freistellungsauftrag: 1000 }));
     expect(a.steuer).toBe(0);
@@ -131,6 +147,10 @@ describe('bruttoAusNetto', () => {
     ['privat ohne Soli', privat({ soli: false })],
     ['betrieb 42 %', betrieb()],
     ['betrieb 30 % mit Kirchensteuer', betrieb({ persoenlicherSteuersatz: 0.3, kirchensteuersatz: 0.08 })],
+    [
+      'privat, FSA 1.000, Freistellung vor Teilfreistellung',
+      privat({ freistellungsauftrag: 1000, freistellungsauftragModus: 'vor_teilfreistellung' }),
+    ],
   ];
 
   const typen = ['aktienfonds', 'mischfonds', 'immobilienfonds', 'immobilienfonds_ausland', 'sonstige'] as const;

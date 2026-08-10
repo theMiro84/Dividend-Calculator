@@ -14,8 +14,8 @@ import {
   besteuereAusschuettung,
   bruttoAusNetto,
   effektiverSteuersatz,
+  knickBrutto,
   nutzbarerFreistellungsauftrag,
-  teilfreistellungssatz,
 } from './tax.js';
 import type {
   AnlagebetragErgebnis,
@@ -129,8 +129,9 @@ export function berechneEinkommen(anlagebetragBrutto: number, eingaben: Eingaben
     ausschuettungBruttoMonat: ausschuettungBruttoJahr / 12,
     teilfreistellungssatz: steuern.teilfreistellungssatz,
     teilfreistellungsbetrag: steuern.teilfreistellungsbetrag,
-    steuerpflichtigVorFreistellung: steuern.steuerpflichtigVorFreistellung,
+    betragNachErstemAbzug: steuern.betragNachErstemAbzug,
     freistellungsauftragGenutzt: steuern.freistellungsauftragGenutzt,
+    freistellungsauftragModus: steuern.freistellungsauftragModus,
     bemessungsgrundlage: steuern.bemessungsgrundlage,
     steuersatz: steuern.steuersatz,
     steuerJahr: steuern.steuer,
@@ -190,12 +191,11 @@ export function berechneAnlagebetrag(
  */
 export function anlagebetragFreistellungsauftragAusgeschoepft(eingaben: Eingaben): number {
   const { fonds, ausgabeaufschlag, aufschlagModus, steuer } = eingaben;
-  const tf = teilfreistellungssatz(fonds.typ, steuer.vermoegensart);
-  const fsa = nutzbarerFreistellungsauftrag(steuer);
-  const q = 1 - tf;
-  if (q <= 0 || fsa <= 0 || effektiverSteuersatz(steuer) <= 0) return 0;
+  if (nutzbarerFreistellungsauftrag(steuer) <= 0 || effektiverSteuersatz(steuer) <= 0) return 0;
 
-  const bruttoAmKnick = fsa / q;
+  const bruttoAmKnick = knickBrutto(fonds.typ, steuer);
+  if (!Number.isFinite(bruttoAmKnick)) return 0;
+
   return anlagebetragAusKapital(
     bruttoAmKnick / ausschuettungsrendite(fonds),
     ausgabeaufschlag,

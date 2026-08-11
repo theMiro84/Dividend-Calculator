@@ -11,6 +11,7 @@ import {
   ausschuettungsrendite,
   berechneAnlagebetrag,
   berechneEinkommen,
+  kapitalAusAnlagebetrag,
 } from './core/calculator.js';
 import type { Eingaben } from './core/calculator.js';
 import {
@@ -69,6 +70,7 @@ const rechenwegKnoten = el<HTMLElement>('rechenweg');
 const fondsInfo = el<HTMLElement>('fonds-info');
 const richtungHinweis = el<HTMLElement>('richtung-hinweis');
 const fsaModusHinweis = el<HTMLElement>('fsaModus-hinweis');
+const aufschlagHinweis = el<HTMLElement>('aufschlag-hinweis');
 const vermoegensartHinweis = el<HTMLElement>('vermoegensart-hinweis');
 const beispieleKnoten = el<HTMLElement>('beispiele');
 
@@ -431,6 +433,7 @@ function render(): void {
         zustand,
         zustand.steuernBeruecksichtigen,
       );
+      aktualisiereAufschlagHinweis(aktiv.anlagebetragBrutto, zustand);
     } else {
       const e = berechneEinkommen(zustand.betrag, eingaben);
 
@@ -457,12 +460,39 @@ function render(): void {
         detailtabelle(e, zustand);
 
       rechenwegKnoten.innerHTML = rechenwegEinkommen(e, zustand);
+      aktualisiereAufschlagHinweis(e.anlagebetragBrutto, zustand);
     }
 
     ergaenzeFreistellungshinweis(eingaben, zustand);
   } catch (fehler) {
     zeigeFehler(fehler instanceof Error ? fehler.message : 'Unbekannter Fehler.');
   }
+}
+
+/**
+ * Macht in Euro sichtbar, was die Wahl der Konvention bedeutet: Wie viel vom
+ * eingezahlten Betrag tatsaechlich in Fondsanteilen ankommt - und was die
+ * jeweils andere Konvention ergaebe.
+ */
+function aktualisiereAufschlagHinweis(brutto: number, zustand: Formularzustand): void {
+  const a = zustand.ausgabeaufschlag ?? 0;
+  if (!(brutto > 0) || a <= 0) {
+    aufschlagHinweis.textContent =
+      'Ohne Ausgabeaufschlag sind beide Konventionen identisch.';
+    return;
+  }
+
+  const gewaehlt = kapitalAusAnlagebetrag(brutto, a, zustand.aufschlagModus);
+  const andere = kapitalAusAnlagebetrag(
+    brutto,
+    a,
+    zustand.aufschlagModus === 'auf_anteilwert' ? 'im_anlagebetrag' : 'auf_anteilwert',
+  );
+
+  aufschlagHinweis.textContent =
+    `Von ${formatEuro(brutto)} kommen ${formatEuro(gewaehlt)} in Fondsanteilen an, ` +
+    `${formatEuro(brutto - gewaehlt)} sind Aufschlag. ` +
+    `Die andere Konvention ergäbe ${formatEuro(andere)}.`;
 }
 
 /** Zeigt an, ab welchem Anlagebetrag der Freistellungsauftrag ausgeschoepft ist. */

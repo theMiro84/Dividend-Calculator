@@ -171,15 +171,14 @@
           </div>
 
           <div class="feld">
-            <label class="feld__label" for="aufschlagModus">Konvention Ausgabeaufschlag</label>
+            <label class="feld__label" for="aufschlagModus">Der Ausgabeaufschlag gilt</label>
             <select id="aufschlagModus" name="aufschlagModus">
               <option value="auf_anteilwert" selected>
-                auf den Anteilwert aufgeschlagen – Betrag × (1 + a)
+                … vom Anteilwert (Prospekt-Standard, so rechnet das Original)
               </option>
-              <option value="im_anlagebetrag">
-                im Anlagebetrag enthalten – Betrag ÷ (1 − a)
-              </option>
+              <option value="im_anlagebetrag">… vom eingezahlten Anlagebetrag</option>
             </select>
+            <p class="hinweis" id="aufschlag-hinweis"></p>
           </div>
 
           <div class="feld feld--toggle">

@@ -31,7 +31,7 @@ Steuerkonstellationen geprüft.
 ```bash
 npm install
 npm run dev        # Entwicklungsserver (Rechner unter /index.html, Theorie unter /theorie.html)
-npm test           # 129 Unit-Tests des Rechenkerns
+npm test           # 131 Unit-Tests des Rechenkerns
 npm run typecheck  # TypeScript im strict-Modus
 npm run build      # Produktions-Build nach dist/
 npm run artefakt   # Theorieseite als veröffentlichbare Fassung nach build/
@@ -76,8 +76,11 @@ Abgebildet werden:
   `d = z × p₀ ÷ f` (Quote × Vorjahres-Schlusskurs ÷ Termine), woraus `r = z / (1 + w)` folgt.
   Wichtig für eine spätere Anbindung echter Kursdaten: Der Anteilpreis aktualisiert sich täglich,
   die Ausschüttung je Anteil nur einmal im Jahr
-- **Ausgabeaufschlag** in beiden gebräuchlichen Konventionen (`× (1+a)` bzw. `÷ (1−a)`);
-  der Unterschied beträgt exakt `a² / (1−a²)`
+- **Ausgabeaufschlag**, einmalig bei der Anlage fällig, in beiden gebräuchlichen Lesarten.
+  Bei 20.000 € und 4 %: `K = A ÷ (1+a)` = **19.230,77 €** kommen im Depot an (4 % *des
+  Anteilwerts*, Prospekt-Standard — so rechnet auch das Original), gegenüber `K = A × (1−a)` =
+  19.200,00 € (4 % *des Anlagebetrags*). Der Unterschied beträgt exakt `a² / (1−a²)`; die
+  Oberfläche weist unter der Auswahl aus, wie viel vom eingezahlten Betrag ankommt
 - **Teilfreistellung** nach § 20 InvStG, getrennt für Privat- und Betriebsvermögen
 - **Freistellungsauftrag** (Sparer-Pauschbetrag) in beiden Abzugsreihenfolgen: gesetzlich
   *nach* der Teilfreistellung (§ 20 Abs. 9 EStG, Standard) oder *davor* wie im Original-Rechner
@@ -113,6 +116,7 @@ Cent reproduziert:
 | SRI 30 · 50 €/Monat, FSA 500 € | 22.594,15 € | 22.594,15 € |
 | SRI 30 · 50 €/Monat, FSA 550 € | 22.075,06 € | 22.075,06 € |
 | SRI 30 · 20.000 € Anlage, vor Steuern | 46,39 €/Monat | 46,39 €/Monat |
+| SRI 30 · davon in Fondsanteilen | (19.230,77 €) | 19.230,77 € |
 | SRI 75 · 50 €/Monat, FSA 0 €, ohne Steuern | 11.457,03 € | 11.457,03 € |
 | SRI 75 · 50 €/Monat, FSA 0 €, mit Steuern | 14.051,24 € | 14.051,24 € |
 | SRI 30 · 50 €/Monat, **Betriebsvermögen** | 21.555,98 € / 27.785,03 € | identisch zum Privatvermögen |
@@ -123,7 +127,9 @@ Kurs-Update von 0,219 %.
 
 Damit sind fünf Modellfragen entschieden:
 
-1. **Ausgabeaufschlag** folgt `A = K × (1 + a)` — belegt bei 4 % und bei 5 %.
+1. **Ausgabeaufschlag** bezieht sich auf den *Anteilwert*, nicht auf den Anlagebetrag:
+   `A = K × (1 + a)` — belegt bei 4 % und bei 5 %. Der 20.000-€-Fall trennt beide Lesarten
+   messbar (46,39 € gegenüber 46,32 € pro Monat).
 2. **Umkehrung der Steuerformel** stimmt exakt, bei zwei Teilfreistellungssätzen (15 % / 30 %).
 3. **Ausschüttungsmechanik**: Das Ziel (3 % bzw. 6 % p. a.) wird Anfang Januar auf den
    Vorjahres-Schlusskurs bezogen und als fester Eurobetrag je Anteil fixiert. Fußnote 1 des
@@ -150,7 +156,7 @@ hinweist; die Abweichung geht in die konservative Richtung (mehr Kapital, nicht 
 
 ## Tests
 
-129 Tests in acht Dateien:
+131 Tests in acht Dateien:
 
 - `tax.test.ts` – Steuersätze auf zwölf Nachkommastellen (26,3750 % / 27,8186 % / 27,9951 %),
   Teilfreistellungstabelle, Reihenfolge der Abzüge, Umkehrformel inklusive Knick und Monotonie

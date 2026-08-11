@@ -153,9 +153,34 @@ describe('C) 50 €/Monat netto mit Freistellungsauftrag – der Reihenfolge-Nac
 });
 
 describe('D) 20.000 € Anlagebetrag, Richtung Einkommen', () => {
+  const e = berechneEinkommen(20000, eingaben(0, 'nach_teilfreistellung'));
+
   it('trifft 46,39 € pro Monat vor Steuern', () => {
-    const e = berechneEinkommen(20000, eingaben(0, 'nach_teilfreistellung'));
     expect(e.ausschuettungBruttoMonat).toBeCloseTo(46.39, 2);
+  });
+
+  it('laesst von 20.000 € genau 19.230,77 € in Fondsanteilen ankommen', () => {
+    // Ausgabepreis je Anteil = 105,16 x 1,04 = 109,3664 EUR
+    // Anteile = 20.000 / 109,3664 = 182,8715
+    // Depotwert = 182,8715 x 105,16 = 19.230,77 EUR
+    expect(e.investiertesKapital).toBeCloseTo(19230.77, 2);
+    expect(e.ausgabeaufschlagBetrag).toBeCloseTo(769.23, 2);
+    expect(e.anteile).toBeCloseTo(182.8715, 4);
+
+    // Der Aufschlag betraegt 4 % des Investierten, aber nur 3,846 % des Einzahlbetrags.
+    expect(e.ausgabeaufschlagBetrag / e.investiertesKapital).toBeCloseTo(0.04, 10);
+    expect(e.ausgabeaufschlagBetrag / 20000).toBeCloseTo(0.038462, 6);
+  });
+
+  it('verfehlt mit der anderen Konvention die beobachtete Ausgabe', () => {
+    // 4 % vom Anlagebetrag: 20.000 x 0,96 = 19.200 EUR -> 46,32 EUR statt 46,39 EUR
+    const andere = berechneEinkommen(20000, {
+      ...eingaben(0, 'nach_teilfreistellung'),
+      aufschlagModus: 'im_anlagebetrag',
+    });
+    expect(andere.investiertesKapital).toBeCloseTo(19200, 6);
+    expect(andere.ausschuettungBruttoMonat).toBeCloseTo(46.32, 2);
+    expect(andere.ausschuettungBruttoMonat).not.toBeCloseTo(46.39, 2);
   });
 });
 

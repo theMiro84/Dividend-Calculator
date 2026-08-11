@@ -813,42 +813,72 @@ r = z × p₀ / p      <span class="kommentar">abgeleitet, nicht gespeichert</sp
 
       <p>
         Der Ausgabeaufschlag <em>a</em> ist der Teil des eingezahlten Geldes, der nie in
-        Fondsanteilen landet und deshalb auch nie ausschüttet. Er ist damit der einzige Kostenblock,
-        der im Modell explizit auftaucht. Es gibt zwei verbreitete Konventionen:
+        Fondsanteilen landet und deshalb auch nie ausschüttet. Er ist der einzige Kostenblock, der
+        im Modell explizit auftaucht – und er wird bei der Erstanlage einmalig fällig.
+      </p>
+
+      <p>
+        Konkret: Wer <strong>20.000 €</strong> bei 4 % Ausgabeaufschlag anlegt, hat danach nicht
+        20.000 € im Depot. Wie viel ankommt, hängt davon ab, worauf sich die 4 % beziehen – und
+        dafür gibt es zwei Lesarten, die in der Praxis beide vorkommen:
       </p>
 
       <div class="tabelle-huelle">
         <table>
           <thead>
             <tr>
-              <th>Konvention</th>
-              <th>Kapital → Anlagebetrag</th>
-              <th>Anlagebetrag → Kapital</th>
-              <th class="zahl">bei 20.000 € / 4 %</th>
+              <th>Die 4 % gelten …</th>
+              <th class="zahl">im Depot an</th>
+              <th class="zahl">Aufschlag</th>
+              <th>Rechenweg</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td>auf den Anteilwert aufgeschlagen<br /><span class="dezent">(Prospekt-Standard)</span></td>
-              <td><code>A = K × (1 + a)</code></td>
+              <td>… vom <strong>Anteilwert</strong><br /><span class="dezent">Prospekt-Standard</span></td>
+              <td class="zahl">19.230,77 €</td>
+              <td class="zahl">769,23 €</td>
               <td><code>K = A ÷ (1 + a)</code></td>
-              <td class="zahl">20.800,00 €</td>
             </tr>
             <tr>
-              <td>im Anlagebetrag enthalten</td>
-              <td><code>A = K ÷ (1 − a)</code></td>
+              <td>… vom <strong>Anlagebetrag</strong><br /><span class="dezent">bei Plattformen verbreitet</span></td>
+              <td class="zahl">19.200,00 €</td>
+              <td class="zahl">800,00 €</td>
               <td><code>K = A × (1 − a)</code></td>
-              <td class="zahl">20.833,33 €</td>
             </tr>
           </tbody>
         </table>
       </div>
 
       <p>
-        Der relative Unterschied beträgt exakt <code>a² / (1 − a²)</code>, bei 4 % also rund
-        0,16 %. Klein – aber wer die Ausgabe eines fremden Rechners nachbauen will, merkt ihn.
-        Der Prototyp macht die Konvention deshalb zu einer bewussten Auswahl statt zu einer
-        stillen Annahme.
+        Die erste Zeile ist die im Verkaufsprospekt übliche Definition: Dort steht „Ausgabeaufschlag
+        von bis zu 4,00 % <em>des Anteilwerts</em>“. Daraus folgt ein Ausgabepreis von
+        <code>105,16 € × 1,04 = 109,3664 €</code> je Anteil. Für 20.000 € bekommt man
+        <code>182,8715</code> Anteile, die zum Anteilwert von 105,16 € bewertet
+        <strong>19.230,77 €</strong> ergeben. Die gezahlten 769,23 € sind genau 4 % <em>des
+        investierten Kapitals</em> – bezogen auf den Einzahlbetrag sind es nur 3,846 %.
+      </p>
+
+      <div class="kasten kasten--antwort">
+        <h3>Welche Lesart der Original-Rechner verwendet</h3>
+        <p>
+          Die Messung entscheidet es eindeutig. Für 20.000 € weist der Original-Rechner
+          <strong>46,39 € pro Monat</strong> aus. Nachgerechnet:
+        </p>
+        <div class="formel">vom Anteilwert:    19.230,77 € ÷ 105,16 € = 182,8715 Anteile → 46,39 €   ✓ beobachtet
+vom Anlagebetrag:  19.200,00 € ÷ 105,16 € = 182,5789 Anteile → 46,32 €</div>
+        <p>
+          Sieben Cent Unterschied – aber die Ausgabe ist auf den Cent genau, und 46,39 € trifft
+          nur die erste Lesart. Der Prototyp verwendet sie deshalb als Voreinstellung und weist
+          unter der Auswahl direkt aus, wie viel vom eingezahlten Betrag ankommt.
+        </p>
+      </div>
+
+      <p>
+        Der relative Unterschied zwischen beiden Lesarten beträgt exakt <code>a² / (1 − a²)</code>,
+        bei 4 % also rund 0,16 %. Klein – aber wer eine fremde Ausgabe nachbauen will, merkt ihn
+        sofort, und im Rückwärtsweg summiert er sich: Für ein Zielkapital von 20.000 € verlangt die
+        eine Konvention 20.800 €, die andere 20.833,33 €.
       </p>
 
       <h3>3.3 Die Steuer</h3>
@@ -1184,8 +1214,10 @@ A   = K × (1 + a)                 <span class="kommentar">Anlagebetrag inkl. Au
 
       <ul>
         <li>
-          <strong>Ausgabeaufschlag:</strong> Fall A trifft nur mit <code>A = K × (1 + a)</code>.
-          Die andere Konvention läge bei 21.590,52 € – rund 35 € daneben.
+          <strong>Ausgabeaufschlag:</strong> Er bezieht sich auf den Anteilwert, nicht auf den
+          Anlagebetrag. Fall A trifft nur mit <code>A = K × (1 + a)</code> – die andere Lesart
+          läge bei 21.590,52 €, rund 35 € daneben. Fall D trennt beide ebenfalls: 46,39 €
+          gegenüber 46,32 € pro Monat.
         </li>
         <li>
           <strong>Steuerumkehr:</strong> Fall B bestätigt die Formel und die Teilfreistellung
@@ -1550,7 +1582,7 @@ A = 164.585,57 × 1,05                           = 172.814,85 €</div>
 
       <p>
         Der Prototyp trennt Rechenkern (<code>src/core/</code>) und Oberfläche
-        (<code>src/main.ts</code>) strikt. Getestet wird ausschließlich der Kern – 129 Tests in
+        (<code>src/main.ts</code>) strikt. Getestet wird ausschließlich der Kern – 131 Tests in
         acht Dateien:
       </p>
 

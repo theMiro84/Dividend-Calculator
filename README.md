@@ -31,7 +31,7 @@ Steuerkonstellationen geprüft.
 ```bash
 npm install
 npm run dev        # Entwicklungsserver (Rechner unter /index.html, Theorie unter /theorie.html)
-npm test           # 119 Unit-Tests des Rechenkerns
+npm test           # 129 Unit-Tests des Rechenkerns
 npm run typecheck  # TypeScript im strict-Modus
 npm run build      # Produktions-Build nach dist/
 npm run artefakt   # Theorieseite als veröffentlichbare Fassung nach build/
@@ -55,7 +55,7 @@ src/
   main.ts             UI-Logik (rechnet selbst nichts)
   styles.css
 tests/                tax · calculator · roundtrip · allianz-referenz · prognosen ·
-                      examples · format
+                      ausschuettungsziel · examples · format
 scripts/artefakt.mjs  leitet aus theorie.html eine veröffentlichbare Fassung ab
 ```
 
@@ -71,7 +71,11 @@ Anlagebetrag  →  investiertes Kapital  →  Bruttoausschüttung  →  Nettoaus
 
 Abgebildet werden:
 
-- **Ausschüttungsrendite** `r = (Ausschüttung je Anteil × Termine pro Jahr) ÷ Anteilwert`
+- **Ausschüttungsrendite** `r = (Ausschüttung je Anteil × Termine pro Jahr) ÷ Anteilwert`.
+  Bei Fonds mit zugesagter Zielquote ist die Ausschüttung je Anteil eine *abgeleitete* Größe:
+  `d = z × p₀ ÷ f` (Quote × Vorjahres-Schlusskurs ÷ Termine), woraus `r = z / (1 + w)` folgt.
+  Wichtig für eine spätere Anbindung echter Kursdaten: Der Anteilpreis aktualisiert sich täglich,
+  die Ausschüttung je Anteil nur einmal im Jahr
 - **Ausgabeaufschlag** in beiden gebräuchlichen Konventionen (`× (1+a)` bzw. `÷ (1−a)`);
   der Unterschied beträgt exakt `a² / (1−a²)`
 - **Teilfreistellung** nach § 20 InvStG, getrennt für Privat- und Betriebsvermögen
@@ -146,7 +150,7 @@ hinweist; die Abweichung geht in die konservative Richtung (mehr Kapital, nicht 
 
 ## Tests
 
-119 Tests in sieben Dateien:
+129 Tests in acht Dateien:
 
 - `tax.test.ts` – Steuersätze auf zwölf Nachkommastellen (26,3750 % / 27,8186 % / 27,9951 %),
   Teilfreistellungstabelle, Reihenfolge der Abzüge, Umkehrformel inklusive Knick und Monotonie
@@ -156,6 +160,7 @@ hinweist; die Abweichung geht in die konservative Richtung (mehr Kapital, nicht 
   8 Beträge: beide Richtungen müssen exakt invers sein
 - `allianz-referenz.test.ts` – pinnt die elf oben genannten Referenzwerte auf den Cent
 - `prognosen.test.ts` – Vorhersagen zur Abzugsreihenfolge; drei davon inzwischen bestätigt
+- `ausschuettungsziel.test.ts` – Konsistenz von Zielquote, Basispreis und Ausschüttung je Anteil
 - `examples.test.ts` – Pinning der vier Beispielszenarien auf den Cent
 - `format.test.ts` – deutsche Zahleneingabe und -ausgabe, inklusive Rundlauf
 

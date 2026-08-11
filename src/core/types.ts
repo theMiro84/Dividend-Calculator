@@ -40,6 +40,28 @@ export type Ausschuettungsfrequenz = 1 | 2 | 4 | 12;
  */
 export type AufschlagModus = 'auf_anteilwert' | 'im_anlagebetrag';
 
+/**
+ * Herkunft der Ausschuettung bei Fonds mit fest zugesagter Zielquote.
+ *
+ * Der Anbieter legt die Ausschuettung "jedes Jahr Anfang Januar fuer die
+ * folgenden 12 Monate" auf eine Quote fest; Basis ist der letzte Anteilpreis
+ * des Vorjahres. Der so bestimmte Jahresbetrag wird anteilig auf die Termine
+ * verteilt und bleibt fuer das Jahr in Euro fix - notfalls ergaenzt durch eine
+ * Substanzausschuettung.
+ *
+ * Damit ist die Ausschuettung je Anteil keine Stammdatengroesse, sondern eine
+ * ABGELEITETE: sie folgt aus Quote und Basispreis. Fuer eine Anbindung echter
+ * Fondsdaten ist das der entscheidende Punkt - der laufende Anteilpreis
+ * aktualisiert sich taeglich, die Ausschuettung je Anteil aber nur einmal im
+ * Jahr.
+ */
+export interface Ausschuettungsziel {
+  /** Zugesagte Quote p. a. als Dezimal (z. B. 0.03, 0.04, 0.06). */
+  readonly quote: number;
+  /** Anteilpreis, auf den die Quote bezogen wurde: Schlusskurs des Vorjahres. */
+  readonly basisAnteilpreis: number;
+}
+
 /** Stammdaten eines (fiktiven) ausschuettenden Fonds. */
 export interface Fonds {
   readonly id: string;
@@ -52,6 +74,12 @@ export interface Fonds {
   readonly ausschuettungJeAnteil: number;
   /** Ausschuettungstermine pro Jahr. */
   readonly frequenz: Ausschuettungsfrequenz;
+  /**
+   * Nur bei Fonds mit zugesagter Zielquote: woraus `ausschuettungJeAnteil`
+   * stammt. Fehlt das Feld, ist die Ausschuettung je Anteil eine reine
+   * Stammdatengroesse ohne bekannte Herleitung.
+   */
+  readonly ausschuettungsziel?: Ausschuettungsziel;
   /** Vom Anbieter uebliche Obergrenze des Ausgabeaufschlags (Dezimal, z. B. 0.04). */
   readonly ausgabeaufschlagStandard: number;
   /** Laufende Kosten p. a. (TER, Dezimal). Nur informativ - siehe Theorie. */

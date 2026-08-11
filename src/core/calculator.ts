@@ -20,6 +20,8 @@ import {
 import type {
   AnlagebetragErgebnis,
   AufschlagModus,
+  Ausschuettungsfrequenz,
+  Ausschuettungsziel,
   Ergebnis,
   Fonds,
   SteuerEinstellungen,
@@ -34,6 +36,49 @@ import type {
  */
 export function ausschuettungsrendite(fonds: Fonds): number {
   return (fonds.ausschuettungJeAnteil * fonds.frequenz) / fonds.anteilwert;
+}
+
+/**
+ * Ausschuettung je Anteil und Termin aus der zugesagten Zielquote.
+ *
+ *        d = (z x p_Basis) / f
+ *
+ * mit z = Zielquote p. a., p_Basis = Anteilpreis zum Vorjahresende und
+ * f = Termine pro Jahr. Der Jahresbetrag wird anteilig auf die Termine
+ * verteilt und bleibt fuer das Jahr in Euro fix.
+ */
+export function ausschuettungJeAnteilAusZiel(
+  ziel: Ausschuettungsziel,
+  frequenz: Ausschuettungsfrequenz,
+): number {
+  return (ziel.quote * ziel.basisAnteilpreis) / frequenz;
+}
+
+/**
+ * Kursentwicklung seit dem Stichtag der Zielfestlegung (Vorjahresende).
+ * Genau diese Groesse trennt die zugesagte Quote von der laufenden Rendite.
+ */
+export function wertentwicklungSeitZielfestlegung(
+  ziel: Ausschuettungsziel,
+  anteilpreis: number,
+): number {
+  return anteilpreis / ziel.basisAnteilpreis - 1;
+}
+
+/**
+ * Laufende Ausschuettungsrendite auf den heutigen Anteilpreis.
+ *
+ *        r = (z x p_Basis) / p_heute  =  z / (1 + w)
+ *
+ * mit w = Kursentwicklung seit der Zielfestlegung. Die zugesagte Quote und die
+ * laufende Rendite fallen also genau um den Kursanstieg auseinander: Nach einem
+ * Plus von 3,63 % liefert eine 3-%-Zusage noch 2,89 %.
+ */
+export function laufendeRenditeAusZiel(ziel: Ausschuettungsziel, anteilpreis: number): number {
+  if (!(anteilpreis > 0)) {
+    throw new Error('Der Anteilpreis muss groesser als 0 sein.');
+  }
+  return (ziel.quote * ziel.basisAnteilpreis) / anteilpreis;
 }
 
 /** Bruttoanlagebetrag (inkl. Ausgabeaufschlag) aus dem investierten Kapital. */

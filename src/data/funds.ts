@@ -13,10 +13,15 @@
  * der Prototyp neun abgelesene Ausgaben auf den Cent - siehe
  * tests/allianz-referenz.test.ts.
  *
- * Beide zeigen dasselbe Muster: Das Ausschüttungsziel (3 % bzw. 6 % p. a.) wird
- * Anfang Januar auf den Schlusskurs des Vorjahres bezogen und dann als fester
- * Eurobetrag je Anteil fixiert. Die laufende Rendite auf den aktuellen
- * Anteilpreis liegt darunter, sobald der Kurs gestiegen ist.
+ * Beide tragen ein `ausschuettungsziel`: Die Quote (3 % bzw. 6 % p. a.) wird
+ * Anfang Januar auf den Schlusskurs des Vorjahres bezogen, der Jahresbetrag
+ * anteilig auf die zwoelf Termine verteilt und bleibt in Euro fix. Die laufende
+ * Rendite auf den aktuellen Anteilpreis liegt darunter, sobald der Kurs
+ * gestiegen ist - genau um diesen Kursanstieg.
+ *
+ * `ausschuettungJeAnteil` ist damit bei diesen beiden Fonds eine ABGELEITETE
+ * Groesse. tests/ausschuettungsziel.test.ts prueft, dass die hinterlegte Zahl
+ * zur Zielquote passt.
  */
 
 import type { Fonds } from '../core/types.js';
@@ -75,6 +80,8 @@ export const FONDS: readonly Fonds[] = [
     anteilwert: 105.16,
     ausschuettungJeAnteil: 0.25368,
     frequenz: 12,
+    // 3,00 % p. a. auf den Schlusskurs 2025 -> 3,04416 EUR p. a. -> 0,25368 EUR je Monat
+    ausschuettungsziel: { quote: 0.03, basisAnteilpreis: 101.472 },
     ausgabeaufschlagStandard: 0.04,
     laufendeKosten: 0.0142,
     kapitalbeteiligungsquote: 0.3,
@@ -92,6 +99,8 @@ export const FONDS: readonly Fonds[] = [
     anteilwert: 113.01,
     ausschuettungJeAnteil: 0.51785,
     frequenz: 12,
+    // 6,00 % p. a. auf den Schlusskurs 2025 -> 6,21420 EUR p. a. -> 0,51785 EUR je Monat
+    ausschuettungsziel: { quote: 0.06, basisAnteilpreis: 103.57 },
     ausgabeaufschlagStandard: 0.05,
     laufendeKosten: 0.0182,
     kapitalbeteiligungsquote: 0.75,

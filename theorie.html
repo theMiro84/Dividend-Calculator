@@ -405,6 +405,14 @@
         color: var(--text-schwach);
       }
 
+      blockquote {
+        margin: 0 0 1.1rem;
+        padding: 0.1rem 0 0.1rem 1rem;
+        border-left: 2px solid var(--abweichung);
+        color: var(--text);
+        font-style: italic;
+      }
+
       code {
         font-family: var(--mono);
         font-size: 0.86em;
@@ -636,17 +644,25 @@
         <h3>Frage 2: Geht die Wertentwicklung des Fonds ein?</h3>
         <p>
           <strong>Nein.</strong> In der Formel taucht kein einziger Performance-Parameter auf.
-          Relevant ist ausschließlich die Ausschüttung je Anteil im Verhältnis zum Anteilwert.
-          Der Rechner unterstellt implizit einen konstanten Kurs und eine konstante Ausschüttung.
+          Relevant ist ausschließlich die Ausschüttung je Anteil im Verhältnis zum Anteilpreis.
         </p>
         <p>
-          Zwei Präzisierungen, die die echten Daten des Original-Rechners sichtbar machen:
-          Erstens ist die „3 %“ aus der Fondsauswahl <strong>nicht</strong> die Zahl, mit der
-          gerechnet wird – tatsächlich sind es dort 2,89 % (siehe
-          <a href="#bausteine">Abschnitt 3.1</a>). Zweitens wirkt der Kurs sehr wohl an einer
-          Stelle: als <em>Nenner</em> der Ausschüttungsrendite am Kaufzeitpunkt. Steigt der Kurs,
-          ohne dass die Ausschüttung je Anteil mitzieht, sinkt das Einkommen pro angelegtem Euro.
-          Was das Weglassen der Wertentwicklung sonst noch verdeckt, steht in
+          Der Kurs wirkt aber an einer Stelle sehr wohl – und zwar schärfer, als es zunächst
+          aussieht. Der Anbieter legt die Ausschüttung <em>einmal jährlich</em> als Quote auf den
+          <em>Schlusskurs des Vorjahres</em> fest und zahlt sie danach als festen Eurobetrag je
+          Anteil aus. Beim Kauf im laufenden Jahr gilt deshalb:
+        </p>
+        <div class="formel">r = z / (1 + w)
+
+<span class="kommentar">z = zugesagte Quote (3 %, 4 % oder 6 % p. a.)
+w = Kursentwicklung seit dem Vorjahresende
+r = laufende Rendite, mit der der Rechner arbeitet</span></div>
+        <p>
+          Die „3 %“ aus der Fondsauswahl sind also <strong>nicht</strong> die Zahl, mit der
+          gerechnet wird: Nach 3,63 % Kursplus sind daraus 2,89 % geworden. Der Kurs geht nicht als
+          Wertentwicklung ein, sondern als <em>Nenner</em> – und wer teurer einsteigt, kauft
+          dieselbe Ausschüttung für mehr Geld. Details in
+          <a href="#bausteine">Abschnitt 3.1</a>, die weiteren blinden Flecken in
           <a href="#wertentwicklung">Abschnitt 6</a>.
         </p>
       </div>
@@ -698,23 +714,98 @@ p = Anteilwert / Rücknahmepreis (EUR)</span></div>
       </p>
 
       <div class="kasten kasten--warnung">
-        <h3>Die „3 %“ im Fondsnamen sind nicht die Zahl, mit der gerechnet wird</h3>
+        <h3>Wie die Ausschüttung entsteht – und warum sie nicht der Zielquote entspricht</h3>
+        <p>Der Anbieter beschreibt die Mechanik selbst, und zwar vollständig:</p>
+        <blockquote>
+          „Die Ausschüttung wird jedes Jahr Anfang Januar für die folgenden 12 Monate auf 3,0 %,
+          bzw. 4,0 % oder 6,0 % p. a. festgelegt. <strong>Die Basis ist der letzte Anteilspreis
+          des Vorjahres</strong>, deshalb kann die Ausschüttung in Euro jährlich schwanken. Um die
+          Ausschüttung zu gewährleisten, können bei Bedarf die ordentlichen Erträge um eine
+          <strong>Substanzausschüttung</strong> ergänzt werden. Die Ausschüttungen erfolgen
+          <strong>anteilig jeweils am 15. eines Monats</strong> und werden direkt auf Ihr Konto
+          überwiesen.“
+        </blockquote>
+        <p>Damit ist die Ausschüttung je Anteil keine Stammdatengröße, sondern abgeleitet:</p>
+        <div class="formel">d = (z × p₀) / f          <span class="kommentar">Ausschüttung je Anteil und Termin</span>
+
+<span class="kommentar">z  = zugesagte Quote p. a. (3,0 %, 4,0 % oder 6,0 %)
+p₀ = letzter Anteilspreis des Vorjahres
+f  = Termine pro Jahr (hier 12, jeweils am 15.)</span></div>
         <p>
-          Das Ergebnis-PDF des Original-Rechners weist beides nebeneinander aus:
-          <code>3 % p. a. / 0,25368 Euro je Anteil in 2026</code> bei einem Anteilpreis von
-          <code>105,16 €</code>. Rechnet man nach, ergibt das
-          <code>0,25368 × 12 ÷ 105,16 = <strong>2,8948 %</strong></code> – nicht 3 %.
+          Für das Jahr steht der Eurobetrag damit fest. Der Anteilpreis läuft aber weiter – und
+          genau daraus entsteht die Lücke zwischen der beworbenen Quote und dem, was ein Käufer
+          heute bekommt. Mit <code>w</code> als Kursentwicklung seit dem Vorjahresende gilt:
+        </p>
+        <div class="formel">r = (z × p₀) / p_heute = z / (1 + w)</div>
+        <p>Beide Referenzfonds bestätigen das auf die vierte Nachkommastelle:</p>
+        <div class="tabelle-huelle">
+          <table>
+            <thead>
+              <tr>
+                <th>Fonds</th>
+                <th class="zahl">Zusage z</th>
+                <th class="zahl">Basis p₀</th>
+                <th class="zahl">je Anteil/Monat</th>
+                <th class="zahl">Kurs heute</th>
+                <th class="zahl">Kursplus w</th>
+                <th class="zahl">laufend r</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>SRI 30</td><td class="zahl">3,00 %</td><td class="zahl">101,472 €</td>
+                <td class="zahl">0,25368 €</td><td class="zahl">105,16 €</td>
+                <td class="zahl">+ 3,6345 %</td><td class="zahl">2,8948 %</td>
+              </tr>
+              <tr>
+                <td>SRI 75</td><td class="zahl">6,00 %</td><td class="zahl">103,570 €</td>
+                <td class="zahl">0,51785 €</td><td class="zahl">113,01 €</td>
+                <td class="zahl">+ 9,1146 %</td><td class="zahl">5,4988 %</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          Zwei Konsequenzen, die in der Quote nicht sichtbar sind. Erstens: <strong>Die Zusage
+          gilt je Anteil, nicht je investiertem Euro.</strong> Wer nach einem Kursanstieg einsteigt,
+          bekommt für sein Geld weniger Anteile und damit eine niedrigere Rendite als die
+          beworbene Quote – bis zum nächsten Januar, wenn die Quote neu auf den dann aktuellen
+          Schlusskurs bezogen wird. Zweitens: Die Ausschüttung ist <strong>zugesagt, nicht
+          erwirtschaftet.</strong> Reichen die ordentlichen Erträge nicht, wird aus der Substanz
+          ausgeschüttet – der Anteilpreis sinkt dann entsprechend, das Monatseinkommen bleibt
+          gleich. Genau dieser Fall ist im Modell unsichtbar (siehe
+          <a href="#wertentwicklung">Abschnitt 6</a>).
+        </p>
+      </div>
+
+      <div class="kasten">
+        <h3>Was das für eine Anbindung echter Fondsdaten bedeutet</h3>
+        <p>
+          Solange man mit festen Zahlen rechnet, ist die Unterscheidung akademisch. Verknüpft man
+          den Rechner mit einer Kursquelle, wird sie zur zentralen Invariante: <strong>Der
+          Anteilpreis aktualisiert sich täglich, die Ausschüttung je Anteil nur einmal im
+          Jahr.</strong> Ein Datenmodell sollte deshalb nicht die Ausschüttung je Anteil
+          speichern, sondern die beiden Größen, aus denen sie entsteht:
+        </p>
+        <div class="formel">Fonds {
+  zielquote           z    <span class="kommentar">jährlich, Anfang Januar gesetzt</span>
+  basisAnteilpreis    p₀   <span class="kommentar">Schlusskurs des Vorjahres, jährlich gesetzt</span>
+  anteilpreis         p    <span class="kommentar">täglich aktualisiert</span>
+}
+
+d = z × p₀ / f      <span class="kommentar">abgeleitet, nicht gespeichert</span>
+r = z × p₀ / p      <span class="kommentar">abgeleitet, nicht gespeichert</span></div>
+        <p>
+          Der naheliegende Fehler: beim Kursupdate die Ausschüttung „mitziehen“. Dann läge die
+          laufende Rendite dauerhaft bei der Zielquote, und der Rechner nennte systematisch zu
+          niedrige Anlagebeträge – im Fall des SRI 75 um gut 9 %. Der Prototyp hält die Beziehung
+          deshalb als Testfall fest (<code>tests/ausschuettungsziel.test.ts</code>): Die
+          hinterlegte Ausschüttung je Anteil muss zu Quote und Basispreis passen.
         </p>
         <p>
-          Die Auflösung: <code>0,25368 × 12 = 3,04416 €</code> sind exakt 3,00 % von
-          <strong>101,472 €</strong>. Die Ausschüttung wurde also zu Jahresbeginn als 3 % des
-          <em>damaligen</em> Anteilpreises festgelegt und für das Jahr als fester Eurobetrag je
-          Anteil fixiert. Seither ist der Kurs gestiegen – und damit die laufende Rendite auf
-          <strong>2,89 %</strong> gefallen. Wer heute kauft, bekommt 2,89 %, nicht 3 %.
-        </p>
-        <p>
-          Das ist der erste Ort, an dem der Kurs doch eine Rolle spielt: nicht als Wertentwicklung
-          in der Formel, sondern als <em>Nenner</em> der Ausschüttungsrendite am Kaufzeitpunkt.
+          Der Auszahlungstermin (der 15.) spielt für die Jahresrechnung keine Rolle, für eine
+          Zahlungsplanung schon: Wer im August kauft, erhält in diesem Kalenderjahr nur noch die
+          verbleibenden Termine, nicht zwölf.
         </p>
       </div>
 
@@ -991,7 +1082,10 @@ A   = K × (1 + a)                 <span class="kommentar">Anlagebetrag inkl. Au
         </li>
         <li>
           <strong>Die Ausschüttung je Anteil bleibt konstant.</strong> Nur dann bleibt das
-          Monatseinkommen über die Zeit stabil.
+          Monatseinkommen über die Zeit stabil. Für das laufende Jahr trifft das hier sogar zu –
+          der Eurobetrag ist zugesagt. Aber eben nur bis zum nächsten Januar: Dann wird die Quote
+          neu auf den dann aktuellen Schlusskurs bezogen, und das Monatseinkommen springt mit dem
+          Kurs mit – nach oben wie nach unten.
         </li>
       </ol>
 
@@ -1437,6 +1531,14 @@ A = 164.585,57 × 1,05                           = 172.814,85 €</div>
               <td>Der Rechner rechnet mit Bruchteilen; real können Mindeststückelungen gelten.</td>
             </tr>
             <tr>
+              <td>Einstieg unterjährig</td>
+              <td>Ausgezahlt wird am 15. jedes Monats. Wer im August kauft, erhält im ersten Kalenderjahr nur die verbleibenden Termine – der Rechner weist trotzdem das volle Jahresbild aus.</td>
+            </tr>
+            <tr>
+              <td>Jährliche Neufestsetzung der Ausschüttung</td>
+              <td>Der Eurobetrag je Anteil gilt nur für zwölf Monate. Im Januar wird die Quote neu auf den Vorjahres-Schlusskurs bezogen; das Monatseinkommen ändert sich dann sprunghaft.</td>
+            </tr>
+            <tr>
               <td>Wiederanlage der Ausschüttung</td>
               <td>Bewusst nicht modelliert – das Modell beschreibt Entnahme, nicht Aufbau.</td>
             </tr>
@@ -1448,8 +1550,8 @@ A = 164.585,57 × 1,05                           = 172.814,85 €</div>
 
       <p>
         Der Prototyp trennt Rechenkern (<code>src/core/</code>) und Oberfläche
-        (<code>src/main.ts</code>) strikt. Getestet wird ausschließlich der Kern – 119 Tests in
-        sieben Dateien:
+        (<code>src/main.ts</code>) strikt. Getestet wird ausschließlich der Kern – 129 Tests in
+        acht Dateien:
       </p>
 
       <ul>
@@ -1482,6 +1584,11 @@ A = 164.585,57 × 1,05                           = 172.814,85 €</div>
           Original-Rechners auf den Cent – inklusive des Nachweises, dass Fall C nur in der
           vereinfachten Abzugsreihenfolge trifft, und dass die alternative
           Ausgabeaufschlag-Konvention die Referenz um mehr als 30 € verfehlt.
+        </li>
+        <li>
+          <strong>Herkunft der Ausschüttung.</strong> <code>ausschuettungsziel.test.ts</code>
+          prüft, dass die hinterlegte Ausschüttung je Anteil zu Zielquote und Vorjahres-Schlusskurs
+          passt, und pinnt <code>r = z / (1 + w)</code> für beide Referenzfonds.
         </li>
         <li>
           <strong>Falsifizierbare Prognosen.</strong> <code>prognosen.test.ts</code> hält fest,

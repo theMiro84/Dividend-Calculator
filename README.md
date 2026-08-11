@@ -34,7 +34,11 @@ npm run dev        # Entwicklungsserver (Rechner unter /index.html, Theorie unte
 npm test           # 119 Unit-Tests des Rechenkerns
 npm run typecheck  # TypeScript im strict-Modus
 npm run build      # Produktions-Build nach dist/
+npm run artefakt   # Theorieseite als veröffentlichbare Fassung nach build/
 ```
+
+Die Theorieseite ist mobil-first gestaltet (Lesefortschritt, tippbare Kapitelliste, Tabellen
+scrollen in eigenen Containern) und funktioniert in hellem wie dunklem Theme.
 
 ## Aufbau
 
@@ -52,6 +56,7 @@ src/
   styles.css
 tests/                tax · calculator · roundtrip · allianz-referenz · prognosen ·
                       examples · format
+scripts/artefakt.mjs  leitet aus theorie.html eine veröffentlichbare Fassung ab
 ```
 
 Rechenkern und Oberfläche sind strikt getrennt: `src/main.ts` liest nur Formularwerte,

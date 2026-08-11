@@ -10,172 +10,395 @@
       content="Die Mathematik hinter Rechnern für monatliches Extra-Einkommen aus ausschüttenden Fonds – Formeln, Steuern, Inversion und Grenzen des Modells."
     />
     <style>
+      /* ------------------------------------------------------------------
+         Gestaltung: "Kontenabstimmung".
+         Die Seite handelt davon, Zahlen zur Deckung zu bringen - deshalb
+         kuehles Papier, Ledger-Navy, ein Gruen fuer Gemessenes und ein Rost
+         fuer Abweichungen. Serifen-Display gegen System-Sans, Ziffern
+         durchgehend tabellarisch. Mobil zuerst.
+         ------------------------------------------------------------------ */
+
       :root {
-        --blau: #12467b;
-        --blau-hell: #1d6fbd;
-        --blau-sanft: #eaf2fb;
-        --gruen: #0f7a5a;
-        --gruen-sanft: #e6f5ef;
-        --gelb-sanft: #fdf4e3;
-        --gelb-rand: #e0b451;
-        --text: #16202c;
-        --text-schwach: #5b6875;
-        --linie: #dbe2ea;
+        color-scheme: light dark;
+
+        --grund: #f2f5f8;
         --flaeche: #ffffff;
-        --grund: #f4f6f9;
-        --code-grund: #f0f3f7;
+        --flaeche-tief: #e9eef3;
+        --text: #141c26;
+        --text-schwach: #57646f;
+        --linie: #d7dee6;
+        --linie-zart: #e6ebf1;
+
+        --navy: #1f4e79;
+        --navy-hell: #2c6ca6;
+        --navy-sanft: #e6eef6;
+
+        --gemessen: #0e7157;
+        --gemessen-sanft: #e2f2ec;
+        --abweichung: #9e4f26;
+        --abweichung-sanft: #f8ede4;
+
+        --serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia,
+          ui-serif, serif;
+        --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+          sans-serif;
+        --mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono',
+          monospace;
+
+        --spalte: 34rem;
+        --rand: 1.25rem;
       }
 
       @media (prefers-color-scheme: dark) {
-        :root {
-          --blau: #7fb2e8;
-          --blau-hell: #a9cdf5;
-          --blau-sanft: #16283c;
-          --gruen: #5cc4a0;
-          --gruen-sanft: #12271f;
-          --gelb-sanft: #2a2416;
-          --gelb-rand: #8a6f2f;
-          --text: #e7edf4;
-          --text-schwach: #9aa8b8;
-          --linie: #27333f;
-          --flaeche: #131a22;
-          --grund: #0c1117;
-          --code-grund: #101821;
+        :root:not([data-theme='light']) {
+          --grund: #0c1116;
+          --flaeche: #141b23;
+          --flaeche-tief: #1b242e;
+          --text: #e4ebf2;
+          --text-schwach: #94a3b2;
+          --linie: #24303c;
+          --linie-zart: #1c252f;
+
+          --navy: #7fb4e6;
+          --navy-hell: #a6cdf2;
+          --navy-sanft: #16283a;
+
+          --gemessen: #4fbf9b;
+          --gemessen-sanft: #10261f;
+          --abweichung: #de9163;
+          --abweichung-sanft: #2a1e15;
         }
+      }
+
+      :root[data-theme='dark'] {
+        --grund: #0c1116;
+        --flaeche: #141b23;
+        --flaeche-tief: #1b242e;
+        --text: #e4ebf2;
+        --text-schwach: #94a3b2;
+        --linie: #24303c;
+        --linie-zart: #1c252f;
+
+        --navy: #7fb4e6;
+        --navy-hell: #a6cdf2;
+        --navy-sanft: #16283a;
+
+        --gemessen: #4fbf9b;
+        --gemessen-sanft: #10261f;
+        --abweichung: #de9163;
+        --abweichung-sanft: #2a1e15;
       }
 
       * {
         box-sizing: border-box;
       }
 
+      html {
+        scroll-behavior: smooth;
+        -webkit-text-size-adjust: 100%;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+        * {
+          transition: none !important;
+          animation: none !important;
+        }
+      }
+
       body {
         margin: 0;
         background: var(--grund);
         color: var(--text);
-        font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        font-family: var(--sans);
         font-size: 17px;
-        line-height: 1.65;
+        line-height: 1.7;
         -webkit-font-smoothing: antialiased;
+        overflow-wrap: break-word;
       }
+
+      /* ------------------------------------------------- Lesefortschritt */
+
+      .fortschritt {
+        position: fixed;
+        inset: 0 0 auto 0;
+        height: 3px;
+        background: transparent;
+        z-index: 10;
+        pointer-events: none;
+      }
+
+      .fortschritt span {
+        display: block;
+        height: 100%;
+        width: 0;
+        background: var(--navy);
+        transition: width 0.1s linear;
+      }
+
+      /* ---------------------------------------------------------- Raster */
 
       .seite {
-        max-width: 860px;
+        max-width: var(--spalte);
         margin: 0 auto;
-        padding: 24px 20px 80px;
+        padding: 1.5rem var(--rand) 5rem;
       }
 
+      /* Prosa bleibt schmal, Tabellen und Formeln duerfen ausbrechen. */
+      .tabelle-huelle,
+      .formel {
+        width: 100%;
+      }
+
+      @media (min-width: 46rem) {
+        :root {
+          --spalte: 41rem;
+          --rand: 2rem;
+        }
+        body {
+          font-size: 18px;
+        }
+        .tabelle-huelle,
+        .formel {
+          width: calc(100% + 3rem);
+          margin-left: -1.5rem;
+          margin-right: -1.5rem;
+        }
+      }
+
+      /* -------------------------------------------------------- Kopfzeile */
+
       header.kopf {
-        padding: 16px 0 32px;
-        border-bottom: 1px solid var(--linie);
-        margin-bottom: 32px;
+        padding: 0.5rem 0 2rem;
+        border-bottom: 2px solid var(--text);
+        margin-bottom: 2.5rem;
       }
 
       .eyebrow {
-        margin: 0;
-        font-size: 12px;
-        font-weight: 700;
-        letter-spacing: 0.12em;
+        margin: 0 0 0.75rem;
+        font-family: var(--mono);
+        font-size: 0.7rem;
+        font-weight: 600;
+        letter-spacing: 0.16em;
         text-transform: uppercase;
-        color: var(--blau);
+        color: var(--navy);
       }
 
       h1 {
-        margin: 6px 0 10px;
-        font-size: clamp(30px, 5vw, 44px);
-        line-height: 1.1;
-        letter-spacing: -0.02em;
+        margin: 0 0 0.75rem;
+        font-family: var(--serif);
+        font-size: clamp(2rem, 8vw, 3rem);
+        font-weight: 600;
+        line-height: 1.08;
+        letter-spacing: -0.015em;
+        text-wrap: balance;
       }
 
       h2 {
-        margin: 56px 0 12px;
-        font-size: clamp(22px, 3.2vw, 28px);
+        margin: 3.5rem 0 0.75rem;
+        padding-top: 1.75rem;
+        border-top: 1px solid var(--linie);
+        font-family: var(--serif);
+        font-size: clamp(1.4rem, 5vw, 1.85rem);
+        font-weight: 600;
         line-height: 1.2;
         letter-spacing: -0.01em;
-        padding-top: 8px;
-        border-top: 1px solid var(--linie);
+        text-wrap: balance;
+        scroll-margin-top: 1rem;
       }
 
       h3 {
-        margin: 32px 0 8px;
-        font-size: 19px;
+        margin: 2.25rem 0 0.5rem;
+        font-family: var(--serif);
+        font-size: 1.2rem;
+        font-weight: 600;
+        line-height: 1.3;
+        text-wrap: balance;
       }
 
       p,
       ul,
       ol {
-        margin: 0 0 16px;
+        margin: 0 0 1.1rem;
       }
 
       li {
-        margin-bottom: 6px;
+        margin-bottom: 0.4rem;
+      }
+
+      ul,
+      ol {
+        padding-left: 1.35rem;
       }
 
       a {
-        color: var(--blau-hell);
+        color: var(--navy);
+        text-decoration-thickness: 1px;
+        text-underline-offset: 0.15em;
+      }
+
+      a:focus-visible,
+      .link-button:focus-visible,
+      .nach-oben:focus-visible {
+        outline: 2px solid var(--navy);
+        outline-offset: 3px;
+        border-radius: 3px;
       }
 
       .lead {
-        font-size: 19px;
+        margin: 0 0 1.5rem;
+        font-size: 1.1rem;
+        line-height: 1.55;
         color: var(--text-schwach);
-        max-width: 60ch;
+      }
+
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem 1rem;
+        margin: 0 0 1.5rem;
+        font-family: var(--mono);
+        font-size: 0.75rem;
+        letter-spacing: 0.04em;
+        color: var(--text-schwach);
       }
 
       .link-button {
         display: inline-block;
-        margin-top: 8px;
-        padding: 10px 16px;
+        padding: 0.7rem 1.1rem;
         border: 1px solid var(--linie);
-        border-radius: 999px;
+        border-radius: 2px;
         background: var(--flaeche);
-        color: var(--blau);
-        font-size: 15px;
+        color: var(--navy);
+        font-size: 0.9rem;
         font-weight: 600;
         text-decoration: none;
       }
 
       .link-button:hover {
-        border-color: var(--blau);
+        border-color: var(--navy);
+        background: var(--navy-sanft);
       }
+
+      /* ------------------------------------------------ Inhaltsverzeichnis */
+
+      .inhalt {
+        background: var(--flaeche);
+        border: 1px solid var(--linie);
+        border-radius: 3px;
+        padding: 1.1rem 1.25rem 0.75rem;
+      }
+
+      .inhalt > strong {
+        display: block;
+        font-family: var(--mono);
+        font-size: 0.7rem;
+        font-weight: 600;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--text-schwach);
+      }
+
+      .inhalt ol {
+        margin: 0.5rem 0 0;
+        padding: 0;
+        list-style: none;
+        counter-reset: kapitel;
+      }
+
+      .inhalt li {
+        margin: 0;
+        counter-increment: kapitel;
+        border-top: 1px solid var(--linie-zart);
+      }
+
+      .inhalt li:first-child {
+        border-top: none;
+      }
+
+      .inhalt a {
+        display: flex;
+        gap: 0.75rem;
+        align-items: baseline;
+        padding: 0.7rem 0;
+        min-height: 44px;
+        color: var(--text);
+        text-decoration: none;
+        font-size: 0.95rem;
+        line-height: 1.35;
+      }
+
+      .inhalt a::before {
+        content: counter(kapitel);
+        flex: none;
+        width: 1.4rem;
+        font-family: var(--mono);
+        font-size: 0.8rem;
+        color: var(--navy);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .inhalt a:hover {
+        color: var(--navy);
+      }
+
+      /* --------------------------------------------------------- Kaesten */
 
       .kasten {
         border: 1px solid var(--linie);
-        border-left: 4px solid var(--blau);
-        border-radius: 10px;
+        border-left: 3px solid var(--navy);
+        border-radius: 3px;
         background: var(--flaeche);
-        padding: 18px 20px;
-        margin: 24px 0;
+        padding: 1.1rem 1.25rem;
+        margin: 1.75rem 0;
       }
 
       .kasten--antwort {
-        border-left-color: var(--gruen);
-        background: var(--gruen-sanft);
+        border-left-color: var(--gemessen);
+        background: var(--gemessen-sanft);
       }
 
       .kasten--warnung {
-        border-left-color: var(--gelb-rand);
-        background: var(--gelb-sanft);
+        border-left-color: var(--abweichung);
+        background: var(--abweichung-sanft);
       }
 
       .kasten h3 {
         margin-top: 0;
+        font-size: 1.05rem;
       }
 
       .kasten p:last-child,
-      .kasten ul:last-child {
+      .kasten ul:last-child,
+      .kasten ol:last-child,
+      .kasten .formel:last-child {
         margin-bottom: 0;
       }
 
+      /* --------------------------------------------------------- Formeln */
+
       .formel {
-        background: var(--code-grund);
+        background: var(--flaeche-tief);
         border: 1px solid var(--linie);
-        border-radius: 10px;
-        padding: 16px 18px;
-        margin: 18px 0;
-        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-        font-size: 15px;
-        line-height: 1.9;
+        border-radius: 3px;
+        padding: 0.9rem 1rem;
+        margin: 1.25rem 0;
+        font-family: var(--mono);
+        font-size: 0.78rem;
+        line-height: 1.75;
+        font-variant-numeric: tabular-nums;
         overflow-x: auto;
         white-space: pre;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      @media (min-width: 46rem) {
+        .formel {
+          font-size: 0.85rem;
+          padding: 1rem 1.5rem;
+        }
       }
 
       .formel .kommentar {
@@ -183,67 +406,94 @@
       }
 
       code {
-        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-        font-size: 0.9em;
-        background: var(--code-grund);
-        padding: 1px 5px;
-        border-radius: 5px;
+        font-family: var(--mono);
+        font-size: 0.86em;
+        background: var(--flaeche-tief);
+        padding: 0.1em 0.35em;
+        border-radius: 2px;
+        font-variant-numeric: tabular-nums;
       }
+
+      /* -------------------------------------------------------- Tabellen */
 
       .tabelle-huelle {
         overflow-x: auto;
-        margin: 20px 0;
+        -webkit-overflow-scrolling: touch;
+        margin: 1.25rem 0;
         border: 1px solid var(--linie);
-        border-radius: 10px;
+        border-radius: 3px;
         background: var(--flaeche);
       }
 
       table {
         border-collapse: collapse;
         width: 100%;
-        font-size: 15px;
+        font-size: 0.85rem;
+        line-height: 1.45;
       }
 
       th,
       td {
-        padding: 10px 14px;
+        padding: 0.6rem 0.85rem;
         text-align: left;
-        border-bottom: 1px solid var(--linie);
-        white-space: nowrap;
+        border-bottom: 1px solid var(--linie-zart);
+        vertical-align: top;
+      }
+
+      /* Beschriftungen duerfen auf dem Handy umbrechen, Zahlen nie - sonst
+         schiebt eine lange Zeile die Werte aus dem Bild. */
+      td {
+        white-space: normal;
+        min-width: 8rem;
       }
 
       th {
-        background: var(--blau-sanft);
-        font-size: 13px;
+        position: sticky;
+        top: 0;
+        background: var(--flaeche-tief);
+        font-family: var(--mono);
+        font-size: 0.65rem;
+        font-weight: 600;
         text-transform: uppercase;
-        letter-spacing: 0.05em;
-        color: var(--blau);
+        letter-spacing: 0.08em;
+        color: var(--text-schwach);
+        white-space: nowrap;
       }
 
       tbody tr:last-child td {
         border-bottom: none;
       }
 
+      .dezent {
+        color: var(--text-schwach);
+      }
+
       td.zahl,
       th.zahl {
         text-align: right;
+        white-space: nowrap;
         font-variant-numeric: tabular-nums;
+        font-family: var(--mono);
+        font-size: 0.8rem;
+        min-width: 0;
       }
+
+      /* -------------------------------------------------- Schrittfolgen */
 
       .schritte {
         counter-reset: schritt;
         list-style: none;
         padding: 0;
-        margin: 24px 0;
+        margin: 1.5rem 0;
       }
 
       .schritte li {
         counter-increment: schritt;
         position: relative;
-        padding: 0 0 18px 46px;
+        padding: 0 0 1.25rem 2.25rem;
         margin: 0;
-        border-left: 2px solid var(--linie);
-        margin-left: 15px;
+        border-left: 1px solid var(--linie);
+        margin-left: 0.85rem;
       }
 
       .schritte li:last-child {
@@ -254,67 +504,100 @@
       .schritte li::before {
         content: counter(schritt);
         position: absolute;
-        left: -16px;
-        top: -2px;
-        width: 30px;
-        height: 30px;
+        left: -0.85rem;
+        top: 0;
+        width: 1.7rem;
+        height: 1.7rem;
         border-radius: 50%;
-        background: var(--blau);
-        color: #fff;
-        font-size: 14px;
-        font-weight: 700;
+        background: var(--navy);
+        color: var(--flaeche);
+        font-family: var(--mono);
+        font-size: 0.75rem;
+        font-weight: 600;
         display: grid;
         place-items: center;
       }
 
       .schritte strong {
         display: block;
-        margin-bottom: 2px;
+        margin-bottom: 0.15rem;
+        line-height: 1.4;
       }
 
       .schritte .rechnung {
-        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-        font-size: 14px;
-        color: var(--text-schwach);
         display: block;
-      }
-
-      .schritte .ergebnis {
-        font-weight: 600;
-        color: var(--gruen);
+        font-family: var(--mono);
+        font-size: 0.75rem;
+        line-height: 1.6;
+        color: var(--text-schwach);
+        overflow-x: auto;
         font-variant-numeric: tabular-nums;
       }
 
-      .inhalt {
-        background: var(--flaeche);
-        border: 1px solid var(--linie);
-        border-radius: 10px;
-        padding: 18px 22px;
+      .schritte .ergebnis {
+        display: block;
+        margin-top: 0.15rem;
+        font-weight: 600;
+        color: var(--gemessen);
+        font-variant-numeric: tabular-nums;
       }
 
-      .inhalt ol {
-        margin: 8px 0 0;
-        padding-left: 20px;
+      /* ------------------------------------------------------ Nach oben */
+
+      .nach-oben {
+        position: fixed;
+        right: 1rem;
+        bottom: 1rem;
+        width: 2.75rem;
+        height: 2.75rem;
+        display: grid;
+        place-items: center;
+        border: 1px solid var(--linie);
+        border-radius: 50%;
+        background: var(--flaeche);
+        color: var(--navy);
+        text-decoration: none;
+        font-size: 1.1rem;
+        box-shadow: 0 2px 10px rgb(20 28 38 / 18%);
+        opacity: 0;
+        transform: translateY(0.5rem);
+        pointer-events: none;
+        transition: opacity 0.2s ease, transform 0.2s ease;
+        z-index: 10;
       }
+
+      .nach-oben.sichtbar {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
+      }
+
+      /* -------------------------------------------------------- Fusszeile */
 
       footer.fuss {
-        margin-top: 64px;
-        padding-top: 20px;
+        margin-top: 4rem;
+        padding-top: 1.5rem;
         border-top: 1px solid var(--linie);
         color: var(--text-schwach);
-        font-size: 14px;
+        font-size: 0.85rem;
+        line-height: 1.6;
       }
     </style>
   </head>
   <body>
-    <div class="seite">
+    <div class="fortschritt" aria-hidden="true"><span id="fortschritt-balken"></span></div>
+    <div class="seite" id="anfang">
       <header class="kopf">
-        <p class="eyebrow">Theorie</p>
+        <p class="eyebrow">Rekonstruktion</p>
         <h1>Wie ein Ausschüttungsrechner rechnet</h1>
         <p class="lead">
           Die vollständige Mathematik hinter Rechnern für „monatliches Extra-Einkommen“ aus
           ausschüttenden Fonds – beide Rechenrichtungen, die Steuerformel und ihre Umkehrung,
           plus eine ehrliche Liste dessen, was das Modell <em>nicht</em> abbildet.
+        </p>
+        <p class="meta">
+          <span>Etwa 20 Minuten Lesezeit</span>
+          <span>11 Referenzwerte, auf den Cent geprüft</span>
         </p>
         <a class="link-button" href="./index.html">← Zum Rechner</a>
       </header>
@@ -455,7 +738,7 @@ p = Anteilwert / Rücknahmepreis (EUR)</span></div>
           </thead>
           <tbody>
             <tr>
-              <td>auf den Anteilwert aufgeschlagen<br /><span style="color: var(--text-schwach)">(Prospekt-Standard)</span></td>
+              <td>auf den Anteilwert aufgeschlagen<br /><span class="dezent">(Prospekt-Standard)</span></td>
               <td><code>A = K × (1 + a)</code></td>
               <td><code>K = A ÷ (1 + a)</code></td>
               <td class="zahl">20.800,00 €</td>
@@ -784,16 +1067,16 @@ A   = K × (1 + a)                 <span class="kommentar">Anlagebetrag inkl. Au
             </tr>
           </thead>
           <tbody>
-            <tr><td style="white-space: normal">SRI 30 · 50 €/Monat, FSA 0 €, ohne Steuern</td><td class="zahl">21.555,98 €</td><td class="zahl">21.555,98 €</td></tr>
-            <tr><td style="white-space: normal">SRI 30 · 50 €/Monat, FSA 0 €, mit Steuern</td><td class="zahl">27.785,03 €</td><td class="zahl">27.785,03 €</td></tr>
-            <tr><td style="white-space: normal">SRI 30 · Bruttoausschüttung laut PDF</td><td class="zahl">773,38 € / 64,45 €</td><td class="zahl">773,38 € / 64,45 €</td></tr>
-            <tr><td style="white-space: normal">SRI 30 · 50 €/Monat, FSA 250 €</td><td class="zahl">25.189,59 €</td><td class="zahl">25.189,59 €</td></tr>
-            <tr><td style="white-space: normal">SRI 30 · 50 €/Monat, FSA 500 €</td><td class="zahl">22.594,15 €</td><td class="zahl">22.594,15 €</td></tr>
-            <tr><td style="white-space: normal">SRI 30 · 50 €/Monat, FSA 550 €</td><td class="zahl">22.075,06 €</td><td class="zahl">22.075,06 €</td></tr>
-            <tr><td style="white-space: normal">SRI 30 · 20.000 € Anlage, vor Steuern</td><td class="zahl">46,39 €</td><td class="zahl">46,39 €</td></tr>
-            <tr><td style="white-space: normal">SRI 75 · 50 €/Monat, FSA 0 €, ohne Steuern</td><td class="zahl">11.457,03 €</td><td class="zahl">11.457,03 €</td></tr>
-            <tr><td style="white-space: normal">SRI 75 · 50 €/Monat, FSA 0 €, mit Steuern</td><td class="zahl">14.051,24 €</td><td class="zahl">14.051,24 €</td></tr>
-            <tr><td style="white-space: normal">SRI 30 · 50 €/Monat, <strong>Betriebsvermögen</strong></td><td class="zahl">21.555,98 € / 27.785,03 €</td><td class="zahl">identisch zum Privatvermögen</td></tr>
+            <tr><td>SRI 30 · 50 €/Monat, FSA 0 €, ohne Steuern</td><td class="zahl">21.555,98 €</td><td class="zahl">21.555,98 €</td></tr>
+            <tr><td>SRI 30 · 50 €/Monat, FSA 0 €, mit Steuern</td><td class="zahl">27.785,03 €</td><td class="zahl">27.785,03 €</td></tr>
+            <tr><td>SRI 30 · Bruttoausschüttung laut PDF</td><td class="zahl">773,38 € / 64,45 €</td><td class="zahl">773,38 € / 64,45 €</td></tr>
+            <tr><td>SRI 30 · 50 €/Monat, FSA 250 €</td><td class="zahl">25.189,59 €</td><td class="zahl">25.189,59 €</td></tr>
+            <tr><td>SRI 30 · 50 €/Monat, FSA 500 €</td><td class="zahl">22.594,15 €</td><td class="zahl">22.594,15 €</td></tr>
+            <tr><td>SRI 30 · 50 €/Monat, FSA 550 €</td><td class="zahl">22.075,06 €</td><td class="zahl">22.075,06 €</td></tr>
+            <tr><td>SRI 30 · 20.000 € Anlage, vor Steuern</td><td class="zahl">46,39 €</td><td class="zahl">46,39 €</td></tr>
+            <tr><td>SRI 75 · 50 €/Monat, FSA 0 €, ohne Steuern</td><td class="zahl">11.457,03 €</td><td class="zahl">11.457,03 €</td></tr>
+            <tr><td>SRI 75 · 50 €/Monat, FSA 0 €, mit Steuern</td><td class="zahl">14.051,24 €</td><td class="zahl">14.051,24 €</td></tr>
+            <tr><td>SRI 30 · 50 €/Monat, <strong>Betriebsvermögen</strong></td><td class="zahl">21.555,98 € / 27.785,03 €</td><td class="zahl">identisch zum Privatvermögen</td></tr>
           </tbody>
         </table>
       </div>
@@ -872,28 +1155,28 @@ Kursbewegung: + 0,219 %</div>
           </thead>
           <tbody>
             <tr>
-              <td style="white-space: normal">Ausschüttungsrendite = Ausschüttung je Anteil × Termine ÷ aktueller Anteilpreis</td>
-              <td style="white-space: normal">belegt: zehn Werte, zwei Fonds, zwei Kurse</td>
+              <td>Ausschüttungsrendite = Ausschüttung je Anteil × Termine ÷ aktueller Anteilpreis</td>
+              <td>belegt: zehn Werte, zwei Fonds, zwei Kurse</td>
             </tr>
             <tr>
-              <td style="white-space: normal">Ausgabeaufschlag als <code>A = K × (1 + a)</code></td>
-              <td style="white-space: normal">belegt bei 4 % und bei 5 %</td>
+              <td>Ausgabeaufschlag als <code>A = K × (1 + a)</code></td>
+              <td>belegt bei 4 % und bei 5 %</td>
             </tr>
             <tr>
-              <td style="white-space: normal">Umkehrung der Steuerformel</td>
-              <td style="white-space: normal">belegt bei zwei Teilfreistellungssätzen (15 % und 30 %)</td>
+              <td>Umkehrung der Steuerformel</td>
+              <td>belegt bei zwei Teilfreistellungssätzen (15 % und 30 %)</td>
             </tr>
             <tr>
-              <td style="white-space: normal">Der Freistellungsauftrag wirkt nur mit <code>(1 − tf) × s</code> statt mit <code>s</code></td>
-              <td style="white-space: normal">belegt: drei Beträge, davon einer qualitativ entscheidend</td>
+              <td>Der Freistellungsauftrag wirkt nur mit <code>(1 − tf) × s</code> statt mit <code>s</code></td>
+              <td>belegt: drei Beträge, davon einer qualitativ entscheidend</td>
             </tr>
             <tr>
-              <td style="white-space: normal">Welche der drei gleichwertigen Implementierungen dahintersteckt</td>
-              <td style="white-space: normal">offen; von außen nicht unterscheidbar, auch das PDF schweigt dazu</td>
+              <td>Welche der drei gleichwertigen Implementierungen dahintersteckt</td>
+              <td>offen; von außen nicht unterscheidbar, auch das PDF schweigt dazu</td>
             </tr>
             <tr>
-              <td style="white-space: normal">Verhalten im Betriebsvermögen</td>
-              <td style="white-space: normal">gemessen: der Schalter ändert die Rechnung nicht</td>
+              <td>Verhalten im Betriebsvermögen</td>
+              <td>gemessen: der Schalter ändert die Rechnung nicht</td>
             </tr>
           </tbody>
         </table>
@@ -1126,36 +1409,36 @@ A = 164.585,57 × 1,05                           = 172.814,85 €</div>
           </thead>
           <tbody>
             <tr>
-              <td style="white-space: normal">Vorabpauschale auf thesaurierte Erträge</td>
-              <td style="white-space: normal">Bei ausschüttenden Fonds meist gering, aber nicht immer null – der Rechner zeigt tendenziell zu wenig Steuer.</td>
+              <td>Vorabpauschale auf thesaurierte Erträge</td>
+              <td>Bei ausschüttenden Fonds meist gering, aber nicht immer null – der Rechner zeigt tendenziell zu wenig Steuer.</td>
             </tr>
             <tr>
-              <td style="white-space: normal">Laufende Kosten (TER)</td>
-              <td style="white-space: normal">Bereits im Anteilwert und in der Ausschüttung enthalten – korrekt weggelassen, aber leicht misszuverstehen.</td>
+              <td>Laufende Kosten (TER)</td>
+              <td>Bereits im Anteilwert und in der Ausschüttung enthalten – korrekt weggelassen, aber leicht misszuverstehen.</td>
             </tr>
             <tr>
-              <td style="white-space: normal">Depot- und Transaktionskosten</td>
-              <td style="white-space: normal">Mindern das Nettoeinkommen zusätzlich.</td>
+              <td>Depot- und Transaktionskosten</td>
+              <td>Mindern das Nettoeinkommen zusätzlich.</td>
             </tr>
             <tr>
-              <td style="white-space: normal">Ausländische Quellensteuer</td>
-              <td style="white-space: normal">Kann bei internationalen Fonds anrechenbar sein; § 32d Abs. 1 EStG kennt dafür den Term <code>− 4q</code>.</td>
+              <td>Ausländische Quellensteuer</td>
+              <td>Kann bei internationalen Fonds anrechenbar sein; § 32d Abs. 1 EStG kennt dafür den Term <code>− 4q</code>.</td>
             </tr>
             <tr>
-              <td style="white-space: normal">Günstigerprüfung (§ 32d Abs. 6 EStG)</td>
-              <td style="white-space: normal">Bei niedrigem Gesamteinkommen kann der persönliche Satz günstiger sein als 25 %.</td>
+              <td>Günstigerprüfung (§ 32d Abs. 6 EStG)</td>
+              <td>Bei niedrigem Gesamteinkommen kann der persönliche Satz günstiger sein als 25 %.</td>
             </tr>
             <tr>
-              <td style="white-space: normal">Sonderausgabenabzug der Kirchensteuer im Betriebsvermögen</td>
-              <td style="white-space: normal">Im Modell vernachlässigt – die ausgewiesene Steuer ist dort minimal zu hoch.</td>
+              <td>Sonderausgabenabzug der Kirchensteuer im Betriebsvermögen</td>
+              <td>Im Modell vernachlässigt – die ausgewiesene Steuer ist dort minimal zu hoch.</td>
             </tr>
             <tr>
-              <td style="white-space: normal">Teilbarkeit der Anteile</td>
-              <td style="white-space: normal">Der Rechner rechnet mit Bruchteilen; real können Mindeststückelungen gelten.</td>
+              <td>Teilbarkeit der Anteile</td>
+              <td>Der Rechner rechnet mit Bruchteilen; real können Mindeststückelungen gelten.</td>
             </tr>
             <tr>
-              <td style="white-space: normal">Wiederanlage der Ausschüttung</td>
-              <td style="white-space: normal">Bewusst nicht modelliert – das Modell beschreibt Entnahme, nicht Aufbau.</td>
+              <td>Wiederanlage der Ausschüttung</td>
+              <td>Bewusst nicht modelliert – das Modell beschreibt Entnahme, nicht Aufbau.</td>
             </tr>
           </tbody>
         </table>
@@ -1219,5 +1502,36 @@ A = 164.585,57 × 1,05                           = 172.814,85 €</div>
         <p><a class="link-button" href="./index.html">← Zum Rechner</a></p>
       </footer>
     </div>
+
+    <a class="nach-oben" href="#anfang" id="nach-oben" aria-label="Zurück zum Seitenanfang">↑</a>
+
+    <script>
+      (function () {
+        var balken = document.getElementById('fortschritt-balken');
+        var knopf = document.getElementById('nach-oben');
+        var tick = false;
+
+        function aktualisiere() {
+          var hoehe = document.documentElement.scrollHeight - window.innerHeight;
+          var anteil = hoehe > 0 ? window.scrollY / hoehe : 0;
+          balken.style.width = Math.min(1, Math.max(0, anteil)) * 100 + '%';
+          knopf.classList.toggle('sichtbar', window.scrollY > 800);
+          tick = false;
+        }
+
+        window.addEventListener(
+          'scroll',
+          function () {
+            if (!tick) {
+              tick = true;
+              requestAnimationFrame(aktualisiere);
+            }
+          },
+          { passive: true }
+        );
+        window.addEventListener('resize', aktualisiere, { passive: true });
+        aktualisiere();
+      })();
+    </script>
   </body>
 </html>
